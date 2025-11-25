@@ -1,0 +1,27 @@
+# Kubernetes sensitive files
+.kube/
+*.key
+*.pem
+*.crt
+*.cert
+
+# But allow the kubeconfig if you want to commit it (private repo only)
+# Uncomment the next line if you want to exclude kubeconfig
+# config-rke2-cluster.yaml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Temporary files
+*.log
+*.tmp
+cluster-info-*/
+
