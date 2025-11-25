@@ -4,6 +4,46 @@
 
 Yes, you can absolutely access your cluster from anywhere using the same scripts! Since you're using Tailscale, all your devices (including your laptop) are on the same virtual network.
 
+## How to Identify the Correct Kubeconfig
+
+**What is a kubeconfig?**
+- A YAML file that contains authentication and connection information for your Kubernetes cluster
+- It tells `kubectl` how to connect to your cluster's API server
+- For this cluster, we saved it as `config-rke2-cluster.yaml`
+
+**How to verify you have the right kubeconfig:**
+
+1. **Check the API server address** - It should point to your cluster:
+   ```bash
+   grep "server:" ~/.kube/config-rke2-cluster.yaml
+   # Should show: server: https://100.68.247.112:6443
+   ```
+
+2. **Test the connection**:
+   ```bash
+   export KUBECONFIG=~/.kube/config-rke2-cluster.yaml
+   kubectl cluster-info
+   # Should show: Kubernetes control plane is running at https://100.68.247.112:6443
+   ```
+
+3. **Verify it shows your nodes**:
+   ```bash
+   kubectl get nodes
+   # Should list your 14 nodes (k8s-cp-01, k8s-cp-02, k8s-cp-03, k8s-storage-01, k8s-worker-01 through k8s-worker-10)
+   ```
+
+**If you have multiple kubeconfigs**, you can check which one is for this cluster:
+```bash
+# List all kubeconfig files
+ls -la ~/.kube/*.yaml ~/.kube/config 2>/dev/null
+
+# Check each one's API server
+for file in ~/.kube/*.yaml ~/.kube/config; do
+  [ -f "$file" ] && echo "=== $file ===" && grep "server:" "$file" | head -1
+done
+# Look for the one with: server: https://100.68.247.112:6443
+```
+
 ## How It Works
 
 ### Network Architecture
@@ -39,34 +79,88 @@ kubectl version --client
 
 ### 2. Get the Kubeconfig
 
+**What is a kubeconfig file?**
+- It's a YAML file that contains credentials and connection info for your cluster
+- It tells kubectl how to connect to your Kubernetes API server
+- For this cluster, it's named `config-rke2-cluster.yaml`
+- Location: `~/.kube/config-rke2-cluster.yaml` (or wherever you save it)
+
+**How to identify the correct kubeconfig:**
+1. **Check the API server address** - Should point to `100.68.247.112:6443`
+2. **Check the cluster name** - Should be `default` or match your cluster
+3. **File location** - Usually in `~/.kube/` directory
+
 **Option A: Clone from Git (Recommended)**
 ```bash
-git clone <your-repo>
-cd k8s-home
-# The kubeconfig file should be in the repo
+git clone git@github.com:pgraff/local-kube-access.git
+cd local-kube-access
+# Check if kubeconfig is in the repo
+ls -la .kube/ || ls -la *.yaml
+# If found, verify it's the right one:
+grep "server:" .kube/config-rke2-cluster.yaml
+# Should show: server: https://100.68.247.112:6443
 ```
 
-**Option B: Copy directly**
+**Option B: Copy from your Mac**
 ```bash
-# From your Mac, copy the kubeconfig
-scp ~/.kube/config-rke2-cluster.yaml laptop:/home/youruser/.kube/
+# From your Mac, copy the kubeconfig to your laptop
+scp ~/.kube/config-rke2-cluster.yaml your-laptop:/home/youruser/.kube/
 ```
 
-**Option C: Generate new kubeconfig on control plane**
+**Option C: Generate fresh from control plane (Most Reliable)**
 ```bash
-# SSH to control plane and copy kubeconfig
+# SSH to control plane and get the kubeconfig
 ssh scispike@k8s-cp-01 "cat ~/.kube/config" > ~/.kube/config-rke2-cluster.yaml
+
+# Verify it's the right one - should show your API server
+cat ~/.kube/config-rke2-cluster.yaml | grep "server:"
+# Should show: server: https://100.68.247.112:6443
 ```
 
-### 3. Verify Connectivity
+**Option D: Check what kubeconfig files you have**
+```bash
+# List all kubeconfig files
+ls -la ~/.kube/*.yaml ~/.kube/*.config 2>/dev/null
+
+# Check which one points to your cluster
+for file in ~/.kube/*.yaml ~/.kube/*.config; do
+  echo "=== $file ==="
+  grep -A 1 "server:" "$file" 2>/dev/null | head -2
+done
+```
+
+### 3. Verify You Have the Right Kubeconfig
+
+**First, check the kubeconfig points to your cluster:**
+```bash
+# View the API server address
+cat ~/.kube/config-rke2-cluster.yaml | grep "server:"
+# Should show: server: https://100.68.247.112:6443
+```
+
+**If you have multiple kubeconfigs, identify the right one:**
+```bash
+# The correct kubeconfig should have:
+# - server: https://100.68.247.112:6443
+# - cluster name: default
+# - Contains certificate data (long base64 strings)
+```
+
+### 4. Verify Connectivity
 
 ```bash
-# Set kubeconfig
+# Set kubeconfig (use the path to your file)
 export KUBECONFIG=~/.kube/config-rke2-cluster.yaml
+
+# Or if it's in a different location:
+export KUBECONFIG=/path/to/your/config-rke2-cluster.yaml
 
 # Test connection
 kubectl cluster-info
+# Should show: Kubernetes control plane is running at https://100.68.247.112:6443
+
 kubectl get nodes
+# Should show your 14 nodes (3 control plane + 10 workers + 1 storage)
 ```
 
 If this works, you're all set!
@@ -224,14 +318,22 @@ kubectl get nodes --kubeconfig=~/.kube/config-rke2-cluster.yaml
 
 3. **Clone Your Repo**
    ```bash
-   git clone <your-repo>
-   cd k8s-home
+   git clone git@github.com:pgraff/local-kube-access.git
+   cd local-kube-access
    ```
 
-4. **Copy Kubeconfig** (if not in repo)
+4. **Get Kubeconfig** (if not in repo)
    ```bash
    mkdir -p ~/.kube
-   # Copy from Mac or generate on control plane
+   # Option 1: Copy from Mac
+   scp mac-user@mac-ip:~/.kube/config-rke2-cluster.yaml ~/.kube/
+   
+   # Option 2: Generate fresh from control plane (RECOMMENDED)
+   ssh scispike@k8s-cp-01 "cat ~/.kube/config" > ~/.kube/config-rke2-cluster.yaml
+   
+   # Verify it's correct
+   grep "server:" ~/.kube/config-rke2-cluster.yaml
+   # Should show: server: https://100.68.247.112:6443
    ```
 
 5. **Test Connection**
@@ -280,7 +382,9 @@ Instead of port-forwarding, you could configure Rancher to be accessible directl
 ### Cluster Information
 - **API Server**: https://100.68.247.112:6443
 - **Control Plane**: k8s-cp-01 (100.68.247.112)
-- **Kubeconfig**: `~/.kube/config-rke2-cluster.yaml`
+- **Kubeconfig File**: `~/.kube/config-rke2-cluster.yaml`
+  - **How to verify**: `grep "server:" ~/.kube/config-rke2-cluster.yaml` should show `https://100.68.247.112:6443`
+  - **Where to get it**: From control plane: `ssh scispike@k8s-cp-01 "cat ~/.kube/config" > ~/.kube/config-rke2-cluster.yaml`
 
 ### Access Scripts
 - `./access-rancher.sh` → http://localhost:8443
