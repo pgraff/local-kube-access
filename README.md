@@ -63,6 +63,25 @@ This repository contains documentation, scripts, and configuration files for man
 
 ## 🔗 Accessing Services
 
+### Quick Start - Access All Services
+
+```bash
+# Start all port-forwards at once
+./access-all.sh
+
+# This will start:
+# - Rancher: http://localhost:8443 (HTTP) or https://localhost:8444 (HTTPS)
+# - Longhorn: http://localhost:8080
+# - Kubecost: http://localhost:9090
+# - Kafka UI: http://localhost:8081
+# - Kafka Bootstrap: localhost:9092
+
+# Stop all port-forwards
+./kill-access-all.sh
+```
+
+### Individual Service Access
+
 ### Rancher (Cluster Management UI)
 ```bash
 ./access-rancher.sh
@@ -130,6 +149,8 @@ This repository contains documentation, scripts, and configuration files for man
 ### Access Scripts
 All scripts use your local kubeconfig and work from anywhere (Mac, Linux, etc.):
 
+- **`access-all.sh`** - Start all port-forwards at once (recommended)
+- **`kill-access-all.sh`** - Stop all port-forwards (convenience script)
 - **`access-rancher.sh`** - Port-forward to Rancher UI (ports 8443/8444)
 - **`access-longhorn.sh`** - Port-forward to Longhorn UI (port 8080)
 - **`access-kubecost.sh`** - Port-forward to Kubecost UI (port 9090)
@@ -145,8 +166,18 @@ All scripts use your local kubeconfig and work from anywhere (Mac, Linux, etc.):
 # Make scripts executable
 chmod +x *.sh
 
-# Run any access script
+# Start all services at once (recommended)
+./access-all.sh
+
+# Or access individual services
 ./access-rancher.sh
+./access-longhorn.sh
+./access-kubecost.sh
+./access-kafka-ui.sh
+
+# Stop all port-forwards
+./kill-access-all.sh
+# Or: ./access-all.sh stop
 ```
 
 ## 🌐 Remote Access
