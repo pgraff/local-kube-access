@@ -105,8 +105,10 @@ This repository contains documentation, scripts, and configuration files for man
 - **[Longhorn Setup Guide](longhorn-setup-guide.md)** - Distributed storage setup and configuration
 - **[Lens Setup Guide](setup-lens.md)** - Setting up Lens IDE for cluster management
 - **[Kubecost Cluster ID Fix](kubecost-clusterid-fix.md)** - Troubleshooting Kubecost installation
+- **[Kubecost Grafana Fix](kubecost-grafana-fix.md)** - Fix for Grafana 502 Bad Gateway error
 - **[Kafka Setup Guide](kafka-setup-guide.md)** - Kafka cluster with 3 controllers and 5 brokers
 - **[Strimzi Local-Path Workaround](strimzi-local-path-workaround.md)** - Fix for Strimzi with local-path storage
+- **[Add Node Guide](add-node-guide.md)** - How to add new nodes to the RKE2 cluster
 
 ### Storage Configuration
 - **[Local Path Storage Class](local-path-storageclass.yaml)** - Local storage provisioner (backup)
@@ -211,6 +213,7 @@ k8s-home/
 ├── kafka-kraft-cluster.yaml       # Kafka cluster configuration
 ├── create-strimzi-pvcs.sh         # Script to create PVCs for Strimzi
 ├── strimzi-local-path-workaround.md # Workaround documentation
+├── add-node-guide.md              # Guide for adding new nodes
 ├── local-path-storageclass.yaml   # Local storage provisioner
 └── hostpath-storageclass.yaml     # HostPath storage class
 ```
