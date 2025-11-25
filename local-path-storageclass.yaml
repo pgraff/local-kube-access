@@ -37,10 +37,14 @@ data:
     metadata:
       name: helper-pod
     spec:
+      hostNetwork: true
+      hostPID: true
       containers:
       - name: helper-pod
         image: busybox
         imagePullPolicy: IfNotPresent
+        securityContext:
+          privileged: true
         volumeMounts:
         - mountPath: /data
           name: data-volume
@@ -50,6 +54,7 @@ data:
       - name: data-volume
         hostPath:
           path: $VOL_DIR
+          type: DirectoryOrCreate
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -69,7 +74,7 @@ spec:
       serviceAccountName: local-path-provisioner-service-account
       containers:
       - name: local-path-provisioner
-        image: rancher/local-path-provisioner:v0.0.24
+        image: rancher/local-path-provisioner:v0.0.26
         imagePullPolicy: IfNotPresent
         command:
         - local-path-provisioner

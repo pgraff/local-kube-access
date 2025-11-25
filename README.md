@@ -48,6 +48,7 @@ This repository contains documentation, scripts, and configuration files for man
 - **Storage**: Longhorn (distributed block storage)
 - **Management**: Rancher v2.13.0-rc3
 - **Cost Analysis**: Kubecost
+- **Message Broker**: Kafka 4.1.1 (KRaft mode, 3 controllers, 5 brokers)
 
 ### Node Configuration
 - **Control Plane**: 3 nodes (k8s-cp-01, k8s-cp-02, k8s-cp-03)
@@ -82,6 +83,13 @@ This repository contains documentation, scripts, and configuration files for man
 # Note: Allow 15-25 minutes for initial metrics collection
 ```
 
+### Kafka (Message Broker)
+```bash
+./access-kafka.sh
+# Then connect to: localhost:9092
+# See [Kafka Setup Guide](kafka-setup-guide.md) for usage examples
+```
+
 ### Lens (Kubernetes IDE)
 1. Import kubeconfig: `~/.kube/config-rke2-cluster.yaml`
 2. See [Lens Setup Guide](setup-lens.md) for details
@@ -97,6 +105,8 @@ This repository contains documentation, scripts, and configuration files for man
 - **[Longhorn Setup Guide](longhorn-setup-guide.md)** - Distributed storage setup and configuration
 - **[Lens Setup Guide](setup-lens.md)** - Setting up Lens IDE for cluster management
 - **[Kubecost Cluster ID Fix](kubecost-clusterid-fix.md)** - Troubleshooting Kubecost installation
+- **[Kafka Setup Guide](kafka-setup-guide.md)** - Kafka cluster with 3 controllers and 5 brokers
+- **[Strimzi Local-Path Workaround](strimzi-local-path-workaround.md)** - Fix for Strimzi with local-path storage
 
 ### Storage Configuration
 - **[Local Path Storage Class](local-path-storageclass.yaml)** - Local storage provisioner (backup)
@@ -110,6 +120,7 @@ All scripts use your local kubeconfig and work from anywhere (Mac, Linux, etc.):
 - **`access-rancher.sh`** - Port-forward to Rancher UI (ports 8443/8444)
 - **`access-longhorn.sh`** - Port-forward to Longhorn UI (port 8080)
 - **`access-kubecost.sh`** - Port-forward to Kubecost UI (port 9090)
+- **`access-kafka.sh`** - Port-forward to Kafka bootstrap service (port 9092)
 
 ### Setup Scripts
 - **`setup-remote-laptop.sh`** - Automated setup for new machines (installs kubectl, verifies connection)
@@ -194,8 +205,12 @@ k8s-home/
 ├── access-rancher.sh              # Rancher access script
 ├── access-longhorn.sh             # Longhorn access script
 ├── access-kubecost.sh             # Kubecost access script
+├── access-kafka.sh                # Kafka access script
 ├── setup-remote-laptop.sh         # Remote setup automation
 ├── gather-cluster-info.sh         # Cluster info gathering script
+├── kafka-kraft-cluster.yaml       # Kafka cluster configuration
+├── create-strimzi-pvcs.sh         # Script to create PVCs for Strimzi
+├── strimzi-local-path-workaround.md # Workaround documentation
 ├── local-path-storageclass.yaml   # Local storage provisioner
 └── hostpath-storageclass.yaml     # HostPath storage class
 ```
