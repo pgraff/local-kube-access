@@ -106,6 +106,7 @@ This repository contains documentation, scripts, and configuration files for man
 - **[Lens Setup Guide](setup-lens.md)** - Setting up Lens IDE for cluster management
 - **[Kubecost Cluster ID Fix](kubecost-clusterid-fix.md)** - Troubleshooting Kubecost installation
 - **[Kubecost Grafana Fix](kubecost-grafana-fix.md)** - Fix for Grafana 502 Bad Gateway error
+- **[Kubecost Grafana No Data](kubecost-grafana-no-data-fix.md)** - Troubleshooting when Grafana shows no data
 - **[Kafka Setup Guide](kafka-setup-guide.md)** - Kafka cluster with 3 controllers and 5 brokers
 - **[Strimzi Local-Path Workaround](strimzi-local-path-workaround.md)** - Fix for Strimzi with local-path storage
 - **[Add Node Guide](add-node-guide.md)** - How to add new nodes to the RKE2 cluster

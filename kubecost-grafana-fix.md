@@ -76,5 +76,6 @@ By setting `TMPDIR=/tmp/dashboards`, we redirect all temporary file operations t
 ## Related Files
 
 - [Kubecost Cluster ID Fix](kubecost-clusterid-fix.md) - Initial Kubecost installation troubleshooting
+- [Kubecost Grafana No Data Fix](kubecost-grafana-no-data-fix.md) - Troubleshooting when Grafana shows no data
 - [Access Scripts](README.md#scripts) - How to access Kubecost and Grafana
 
