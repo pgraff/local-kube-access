@@ -1,0 +1,4 @@
+# Add to .gitignore to protect sensitive files
+.kube/
+*.key
+*.pem
