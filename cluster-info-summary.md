@@ -1,6 +1,7 @@
 # Kubernetes Cluster Information Summary
 
-**Generated:** November 24, 2025 11:51 AM CST
+**Generated:** November 25, 2025 7:30 AM CST  
+**Last Updated:** November 25, 2025 7:30 AM CST  
 **Cluster Control Plane:** k8s-cp-01 (scispike@k8s-cp-01)
 
 ## Cluster Overview
@@ -108,15 +109,16 @@ disable:
 ## Networking
 
 ### CNI Plugins
-1. **Cilium** (Active)
-   - DaemonSet: `cilium` (14 desired, 12 ready)
+1. **Cilium** (Active - ✅ RESOLVED)
+   - DaemonSet: `cilium` (14 desired, 14 ready)
    - Operator: Running
-   - Status: 2 pods in CrashLoopBackOff (cilium-2pz7m, cilium-st9nj)
+   - Status: All 14 pods Running and Ready
+   - **Previous Issue:** 2 pods in CrashLoopBackOff - **RESOLVED**
 
-2. **Calico/Canal** (Legacy - Failing)
-   - DaemonSet: `rke2-canal` (14 desired, 0 ready)
-   - Status: All pods in Init:CrashLoopBackOff
-   - **Issue:** All 14 rke2-canal pods failing to start
+2. **Calico/Canal** (Removed - ✅ RESOLVED)
+   - DaemonSet: `rke2-canal` - **DELETED**
+   - Namespace: `calico-system` - **DELETED**
+   - **Previous Issue:** All 14 pods failing - **RESOLVED** (removed)
 
 ### Network Policies
 - Default network policies exist in multiple namespaces
@@ -128,28 +130,36 @@ disable:
 - Hubble Peer: `hubble-peer` (ClusterIP: 10.43.107.62) - Cilium observability
 
 ### Ingress
-- **Ingress Controller:** rke2-ingress-nginx-controller
-  - DaemonSet: 12 desired, 3 ready
-  - **Issue:** 9 pods in CrashLoopBackOff or Error state
+- **Ingress Controller:** rke2-ingress-nginx-controller (✅ RESOLVED)
+  - DaemonSet: 13 desired, 13 ready (all nodes)
+  - Status: All pods Running and Ready
+  - **Previous Issue:** 9 pods failing - **RESOLVED**
 - **Ingress Resource:**
   - Host: `rancher.tailc2013b.ts.net`
-  - Addresses: Multiple node IPs
+  - Addresses: 13 node IPs (all nodes)
   - Ports: 80, 443
+  - Status: Active and accessible
 
-## Storage
+## Storage (✅ RESOLVED)
 
-- **Storage Classes:** None configured
-- **Persistent Volumes:** None
-- **Persistent Volume Claims:** None
+- **Storage Classes:** 
+  - `longhorn` (default) - Distributed block storage
+  - `local-path` - Local disk storage for Kafka
+  - `hostpath` - Simple hostPath storage
+  - `longhorn-static` - Static Longhorn volumes
+- **Persistent Volumes:** Multiple volumes in use (Longhorn, local-path)
+- **Persistent Volume Claims:** Active PVCs for Kafka, Longhorn, and other workloads
 - **Volume Snapshots:** Supported (snapshot controller running)
+- **Previous Issue:** No storage classes - **RESOLVED** (Longhorn and local-path configured)
 
 ## Workloads
 
 ### Deployments
-- **Rancher:** 1/3 ready (3 desired, 1 available)
-  - Pods: rancher-84495749b-7s66b (Running)
-  - Pods: rancher-84495749b-gwxtl (Running, 65 restarts)
-  - Pods: rancher-84495749b-w9qrt (Running, 6 restarts)
+- **Rancher:** 3/3 ready (✅ RESOLVED)
+  - Pods: All 3 pods Running and Ready (1/1)
+  - Restarts: Minimal (1-3 restarts, all hours ago)
+  - Status: Stable
+  - **Previous Issue:** Only 1/3 ready, multiple restarts - **RESOLVED**
   
 - **Cert Manager:** 1/1 ready
 - **Fleet Controller:** 1/1 ready
@@ -158,44 +168,52 @@ disable:
 - **Cilium Operator:** 1/1 ready
 
 ### DaemonSets
-- **Cilium:** 12/14 ready (2 failing)
-- **rke2-canal:** 0/14 ready (all failing)
-- **rke2-ingress-nginx-controller:** 3/12 ready (9 failing)
+- **Cilium:** 14/14 ready (✅ RESOLVED - all nodes healthy)
+- **rke2-canal:** Removed (✅ RESOLVED - CNI conflict resolved)
+- **rke2-ingress-nginx-controller:** 13/13 ready (✅ RESOLVED - all nodes healthy)
 
-## Issues Identified
+## Issues Status
 
-### Critical Issues
+### ✅ All Critical Issues Resolved
 
-1. **CNI Conflict**
-   - Both Cilium and Calico/Canal are installed
-   - Calico/Canal is completely failing (all 14 pods in CrashLoopBackOff)
-   - 2 Cilium pods in CrashLoopBackOff (cilium-2pz7m, cilium-st9nj)
-   - **Impact:** Network connectivity issues, pod creation failures
-   - **Error:** "unable to connect to Cilium agent: failed to create cilium agent client after 30s timeout"
-   - **Cilium Error Details:** Startup probe failing on port 9879 (healthz endpoint)
-   - **Canal Error Details:** install-cni init container failing repeatedly (392+ restarts on some pods)
-   - **Root Cause:** Likely conflict between two CNI plugins trying to manage the same network interfaces
+1. **CNI Conflict** - ✅ **RESOLVED**
+   - **Previous Status:** Both Cilium and Calico/Canal installed, causing conflicts
+   - **Resolution:** 
+     - Removed Calico/Canal DaemonSet (`rke2-canal`)
+     - Cleaned up `calico-system` namespace
+     - Fixed Cilium pods (all 14 now Running)
+   - **Current Status:** Cilium is the sole CNI, all 14 pods healthy
+   - **Resolved Date:** November 24-25, 2025
 
-2. **Ingress Controller Issues**
-   - 9 out of 12 ingress-nginx pods failing
-   - Multiple CrashLoopBackOff states
-   - **Impact:** Ingress routing may be unreliable
-   - **Affected Pods:** rke2-ingress-nginx-controller-8pfn8, j8hfn, vlmrj, h7dhk, qgt79, k8srt, pmf7m, rfl42, tbzfp
+2. **Ingress Controller Issues** - ✅ **RESOLVED**
+   - **Previous Status:** 9 out of 12 pods failing
+   - **Resolution:** Resolved after CNI conflict was fixed
+   - **Current Status:** All 13 ingress-nginx pods Running and Ready
+   - **Resolved Date:** November 24-25, 2025
 
-3. **Rancher Deployment Issues**
-   - Only 1/3 Rancher pods fully ready
-   - Multiple restarts on 2 pods (65 and 6 restarts respectively)
-   - Startup probe failures: "Get http://10.0.7.157:80/healthz: dial tcp 10.0.7.157:80: connect: connection refused"
-   - **Impact:** Rancher UI/API may be unstable
+3. **Rancher Deployment Issues** - ✅ **RESOLVED**
+   - **Previous Status:** Only 1/3 pods ready, multiple restarts
+   - **Resolution:** Stabilized after network issues resolved
+   - **Current Status:** All 3 Rancher pods Running and Ready (1/1)
+   - **Resolved Date:** November 24-25, 2025
 
-### Warnings
+4. **Storage Configuration** - ✅ **RESOLVED**
+   - **Previous Status:** No storage classes configured
+   - **Resolution:** 
+     - Installed Longhorn (default storage class)
+     - Configured local-path provisioner for Kafka
+   - **Current Status:** Multiple storage classes available and working
+   - **Resolved Date:** November 24-25, 2025
+
+### Current Warnings (Non-Critical)
 
 1. **Helm Operations**
-   - Multiple helm-operation pods in Error or Init states
-   - Some operations stuck in Init:0/1
+   - Status: No stuck helm-operation pods currently
+   - Previous issues were transient and have cleared
 
-2. **Network Policy Conflicts**
-   - Default network policies may be blocking some traffic
+2. **Network Policies**
+   - Status: Network policies are active and functioning
+   - No blocking issues identified
 
 ## Custom Resources
 
@@ -234,79 +252,73 @@ disable:
 ### RBAC
 - Extensive RBAC configuration (not fully enumerated in this summary)
 
-## Recommendations
+## Recommendations (Updated)
 
-1. **Resolve CNI Conflict (HIGHEST PRIORITY)**
-   - **Action:** Remove Calico/Canal DaemonSet completely
-     ```bash
-     kubectl delete daemonset rke2-canal -n kube-system
-     ```
-   - **Action:** Clean up Calico resources
-     ```bash
-     kubectl delete namespace calico-system
-     ```
-   - **Action:** Fix failing Cilium pods
-     - Check logs: `kubectl logs cilium-2pz7m -n kube-system`
-     - Verify Cilium agent socket: `/var/run/cilium/cilium.sock`
-     - Check node resources and kernel compatibility
-   - **Action:** Verify Cilium is working on all nodes
-     ```bash
-     kubectl get pods -n kube-system -l k8s-app=cilium
-     ```
+### ✅ Completed Actions
 
-2. **Fix Ingress Controller**
-   - **Action:** Check logs for failing pods
-     ```bash
-     kubectl logs rke2-ingress-nginx-controller-8pfn8 -n kube-system
-     ```
-   - **Action:** Consider reducing DaemonSet to specific nodes or convert to Deployment
-   - **Action:** Verify network policies aren't blocking ingress traffic
-   - **Note:** Ingress failures may be related to CNI issues
+1. **CNI Conflict** - ✅ **COMPLETED**
+   - Removed Calico/Canal DaemonSet
+   - Cleaned up Calico namespace
+   - All Cilium pods now healthy
 
-3. **Stabilize Rancher**
-   - **Action:** Check Rancher pod logs
-     ```bash
-     kubectl logs rancher-84495749b-gwxtl -n cattle-system
-     kubectl logs rancher-84495749b-w9qrt -n cattle-system
-     ```
-   - **Action:** Review startup probe timing and thresholds
-   - **Action:** Check if network issues are preventing health checks
-   - **Action:** Verify Rancher has sufficient resources
+2. **Ingress Controller** - ✅ **COMPLETED**
+   - All ingress-nginx pods now running
+   - Ingress routing working correctly
 
-4. **Clean Up Failed Resources**
-   - **Action:** Remove stuck helm-operation pods
-     ```bash
-     kubectl delete pod helm-operation-* -n cattle-system --field-selector=status.phase!=Running
-     ```
-   - **Action:** Clean up failed jobs
-     ```bash
-     kubectl delete job rancher-post-delete -n cattle-system
-     ```
+3. **Rancher Stability** - ✅ **COMPLETED**
+   - All Rancher pods stable and ready
+   - Health checks passing
 
-5. **Storage Configuration**
-   - **Action:** Configure storage classes for dynamic provisioning
-   - **Action:** Set up appropriate storage backend (local-path, NFS, or cloud storage)
-   - **Note:** Storage node (k8s-storage-01) exists but no storage classes configured
+4. **Storage Configuration** - ✅ **COMPLETED**
+   - Longhorn installed and configured as default
+   - Local-path provisioner configured for Kafka
+   - Multiple storage classes available
 
-6. **Monitoring**
-   - **Action:** Set up monitoring/alerting for cluster health
-   - **Action:** Monitor node resource usage (k8s-worker-07 and k8s-worker-10 at 62-64% CPU)
-   - **Action:** Set up Cilium Hubble for network observability (already installed)
+### Ongoing Recommendations
+
+1. **Monitoring and Observability**
+   - ✅ Kubecost installed for cost analysis
+   - ✅ Kafka UI installed for Kafka monitoring
+   - ✅ Longhorn UI available for storage monitoring
+   - Consider: Set up Prometheus/Grafana for comprehensive metrics (Kubecost includes Prometheus)
+   - Consider: Enable Cilium Hubble UI for network observability
+
+2. **Backup and Disaster Recovery**
+   - Longhorn snapshots configured
+   - Consider: Set up automated backup strategy
+   - Consider: Document disaster recovery procedures
+
+3. **Security Hardening**
+   - Network policies active
+   - Consider: Review and tighten RBAC policies
+   - Consider: Enable Pod Security Standards
+   - Consider: Regular security scanning
+
+4. **Performance Optimization**
+   - Monitor node resource usage
+   - Consider: Resource quotas for namespaces
+   - Consider: Limit ranges for pods
+   - Consider: Horizontal Pod Autoscaling where appropriate
 
 ## Troubleshooting Commands
 
 ### Check CNI Status
 ```bash
-# Check Cilium status
+# Check Cilium status (should show all 14 pods Running)
 kubectl get pods -n kube-system -l k8s-app=cilium
 kubectl logs -n kube-system -l k8s-app=cilium --tail=50
 
-# Check Canal status (should be removed)
-kubectl get pods -n kube-system -l k8s-app=canal
+# Verify Calico/Canal is removed (should return "not found")
+kubectl get daemonset rke2-canal -n kube-system
+kubectl get namespace calico-system
 ```
 
 ### Check Ingress Status
 ```bash
+# Get ingress controller status (should show all pods Ready)
+kubectl get daemonset rke2-ingress-nginx-controller -n kube-system
+kubectl get pods -n kube-system -l app.kubernetes.io/name=rke2-ingress-nginx
+
 # Get ingress controller logs
 kubectl logs -n kube-system -l app.kubernetes.io/name=rke2-ingress-nginx --tail=50
 
@@ -316,11 +328,17 @@ kubectl get ingress --all-namespaces
 
 ### Check Rancher Status
 ```bash
-# Get Rancher pod status
+# Get Rancher pod status (should show all 3 pods Ready)
 kubectl get pods -n cattle-system -l app=rancher
+
+# Get Rancher deployment status
+kubectl get deployment rancher -n cattle-system
 
 # Get Rancher logs
 kubectl logs -n cattle-system -l app=rancher --tail=100
+
+# Check Rancher ingress
+kubectl get ingress rancher -n cattle-system
 ```
 
 ### Network Diagnostics
@@ -338,7 +356,25 @@ kubectl get cn
 ## Access Information
 
 - **Control Plane API:** https://100.68.247.112:6443
-- **Rancher UI:** https://rancher.tailc2013b.ts.net
+- **Rancher UI:** 
+  - Via Ingress: https://rancher.tailc2013b.ts.net
+  - Via Port-Forward: `./access-rancher.sh` then http://localhost:8443 or https://localhost:8444
+- **Longhorn UI:** `./access-longhorn.sh` then http://localhost:8080
+- **Kubecost UI:** `./access-kubecost.sh` then http://localhost:9090
+- **Kafka UI:** `./access-kafka-ui.sh` then http://localhost:8081
+- **Kafka Bootstrap:** `./access-kafka.sh` then localhost:9092
+- **All Services:** `./access-all.sh` to start all port-forwards
 - **SSH Access:** scispike@k8s-cp-01
 - **kubectl:** Available at ~/kubectl on control plane node
+
+## Cluster Health Summary
+
+✅ **All Critical Issues Resolved**  
+✅ **CNI:** Cilium healthy (14/14 pods)  
+✅ **Ingress:** All controllers running (13/13 pods)  
+✅ **Rancher:** All pods stable (3/3 ready)  
+✅ **Storage:** Longhorn and local-path configured  
+✅ **Monitoring:** Kubecost, Kafka UI, and Longhorn UI available  
+
+**Cluster Status:** 🟢 **HEALTHY**
 
