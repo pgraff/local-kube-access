@@ -1,0 +1,83 @@
+# Kafka UI Helm Values
+# Kafka UI (provectus/kafka-ui) - Web UI for Apache Kafka
+
+# Environment variables for Kafka UI
+envs:
+  config:
+    # Kafka cluster configuration
+    KAFKA_CLUSTERS_0_NAME: "kafka-cluster"
+    KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092"
+    
+    # Enable metrics (optional - requires JMX exporter)
+    KAFKA_CLUSTERS_0_METRICS_PORT: "5556"
+    
+    # Schema registry (if you add one later)
+    # KAFKA_CLUSTERS_0_SCHEMAREGISTRY: "http://schema-registry:8081"
+    
+    # Kafka Connect (if you add one later)
+    # KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: "connect"
+    # KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: "http://kafka-connect:8083"
+    
+    # Security (if using TLS/SASL - currently not configured)
+    # KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: "SASL_PLAINTEXT"
+    # KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM: "PLAIN"
+    # KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG: "..."
+    
+    # Read-only mode (set to false to allow topic creation/deletion)
+    KAFKA_CLUSTERS_0_READONLY: "false"
+    
+    # Log level
+    LOGGING_LEVEL_ROOT: "INFO"
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8080
+
+# Ingress (optional - uncomment if you want ingress)
+# ingress:
+#   enabled: true
+#   className: "nginx"
+#   hosts:
+#     - host: kafka-ui.tailc2013b.ts.net
+#       paths:
+#         - path: /
+#           pathType: Prefix
+
+# Resource limits
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "200m"
+  limits:
+    memory: "1Gi"
+    cpu: "500m"
+
+# Replica count
+replicaCount: 1
+
+# Image configuration
+image:
+  repository: provectuslabs/kafka-ui
+  tag: "v0.7.1"  # Latest stable version
+  pullPolicy: IfNotPresent
+
+# Security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+# Pod security context
+podSecurityContext:
+  fsGroup: 1000
+
+# Node selector (optional)
+# nodeSelector: {}
+
+# Tolerations (optional)
+# tolerations: []
+
+# Affinity (optional)
+# affinity: {}
+

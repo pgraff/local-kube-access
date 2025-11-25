@@ -90,6 +90,15 @@ This repository contains documentation, scripts, and configuration files for man
 # See [Kafka Setup Guide](kafka-setup-guide.md) for usage examples
 ```
 
+### Kafka UI (Kafka Management Dashboard)
+```bash
+./access-kafka-ui.sh
+# Then open: http://localhost:8081
+# Features: Topic management, consumer groups, message browser, cluster monitoring
+# See [Kafka UI Setup Guide](kafka-ui-setup-guide.md) for details
+# Note: Uses port 8081 (8080 is used by Longhorn)
+```
+
 ### Lens (Kubernetes IDE)
 1. Import kubeconfig: `~/.kube/config-rke2-cluster.yaml`
 2. See [Lens Setup Guide](setup-lens.md) for details
@@ -108,6 +117,7 @@ This repository contains documentation, scripts, and configuration files for man
 - **[Kubecost Grafana Fix](kubecost-grafana-fix.md)** - Fix for Grafana 502 Bad Gateway error
 - **[Kubecost Grafana No Data](kubecost-grafana-no-data-fix.md)** - Troubleshooting when Grafana shows no data
 - **[Kafka Setup Guide](kafka-setup-guide.md)** - Kafka cluster with 3 controllers and 5 brokers
+- **[Kafka UI Setup Guide](kafka-ui-setup-guide.md)** - Kafka UI dashboard for monitoring and management
 - **[Strimzi Local-Path Workaround](strimzi-local-path-workaround.md)** - Fix for Strimzi with local-path storage
 - **[Add Node Guide](add-node-guide.md)** - How to add new nodes to the RKE2 cluster
 
@@ -124,6 +134,7 @@ All scripts use your local kubeconfig and work from anywhere (Mac, Linux, etc.):
 - **`access-longhorn.sh`** - Port-forward to Longhorn UI (port 8080)
 - **`access-kubecost.sh`** - Port-forward to Kubecost UI (port 9090)
 - **`access-kafka.sh`** - Port-forward to Kafka bootstrap service (port 9092)
+- **`access-kafka-ui.sh`** - Port-forward to Kafka UI dashboard (port 8081)
 
 ### Setup Scripts
 - **`setup-remote-laptop.sh`** - Automated setup for new machines (installs kubectl, verifies connection)
