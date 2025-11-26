@@ -39,22 +39,38 @@ check_kubeconfig() {
 stop_all() {
     print_status "Stopping all port-forwards..."
     
+    # Kill Rancher port-forward on remote first (with timeout to avoid hanging)
+    print_status "Stopping Rancher port-forward on remote server..."
+    timeout 5 ssh -o ConnectTimeout=3 scispike@k8s-cp-01 "pkill -f 'kubectl port-forward.*rancher' || true" 2>/dev/null || true
+    
+    # Kill local SSH tunnels for Rancher (with force if needed)
+    pkill -f "ssh.*-L.*8443.*8444.*k8s-cp-01" 2>/dev/null || true
+    sleep 1
+    # Force kill if still running
+    pkill -9 -f "ssh.*-L.*8443.*8444.*k8s-cp-01" 2>/dev/null || true
+    
+    # Kill all kubectl port-forwards
+    print_status "Stopping kubectl port-forwards..."
+    pkill -f "kubectl port-forward" 2>/dev/null || true
+    sleep 1
+    # Force kill if still running
+    pkill -9 -f "kubectl port-forward" 2>/dev/null || true
+    
+    # Kill processes from PID file
     if [ -f "$PID_FILE" ]; then
         while read -r pid; do
             if kill -0 "$pid" 2>/dev/null; then
                 kill "$pid" 2>/dev/null
+                sleep 0.5
+                # Force kill if still running
+                if kill -0 "$pid" 2>/dev/null; then
+                    kill -9 "$pid" 2>/dev/null || true
+                fi
                 print_status "Stopped process $pid"
             fi
         done < "$PID_FILE"
         rm -f "$PID_FILE"
     fi
-    
-    # Also kill any remaining port-forwards
-    pkill -f "kubectl port-forward" 2>/dev/null || true
-    pkill -f "ssh.*-L.*8443.*8444.*k8s-cp-01" 2>/dev/null || true
-    
-    # Kill Rancher port-forward on remote (both kubectl and any SSH sessions)
-    ssh scispike@k8s-cp-01 "pkill -f 'kubectl port-forward.*rancher' || true" 2>/dev/null || true
     
     # Clean up log files
     rm -rf "$LOG_DIR"
@@ -341,14 +357,33 @@ main() {
         print_status "Checking IoT stack services (optional - failures are normal if pods aren't ready)..."
         # Try to start IoT services, but don't fail if they don't exist or aren't ready
         # Suppress error output since failures are expected if pods aren't ready
+        
+        # Mosquitto - direct service name
         (start_port_forward "mosquitto" "iot" "mosquitto" 1883 1883 2>/dev/null) || true
-        # Hono service name may vary - try common names
-        (start_port_forward "hono" "iot" "hono-http-adapter" 8082 8080 2>/dev/null || \
-         start_port_forward "hono" "iot" "hono-adapter-http" 8082 8080 2>/dev/null) || true
-        # Ditto service name may vary
-        (start_port_forward "ditto" "iot" "ditto-gateway" 8083 8080 2>/dev/null || \
-         start_port_forward "ditto" "iot" "ditto-gateway-service" 8083 8080 2>/dev/null) || true
+        
+        # Hono - use dynamic discovery like access-hono.sh
+        HONO_SERVICE=$(kubectl get svc -n iot -l app=hono,component=http-adapter -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || \
+                      kubectl get svc -n iot -l app.kubernetes.io/name=hono -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || \
+                      kubectl get svc -n iot 2>/dev/null | grep -i hono | grep -i http | head -1 | awk '{print $1}' || \
+                      kubectl get svc -n iot 2>/dev/null | grep -i hono | grep -i adapter | head -1 | awk '{print $1}' || \
+                      echo "")
+        if [ -n "$HONO_SERVICE" ]; then
+            (start_port_forward "hono" "iot" "$HONO_SERVICE" 8082 8080 2>/dev/null) || true
+        fi
+        
+        # Ditto - use dynamic discovery like access-ditto.sh
+        DITTO_SERVICE=$(kubectl get svc -n iot -o name 2>/dev/null | grep -i ditto | grep -i gateway | head -1 | sed 's|service/||' || \
+                        kubectl get svc -n iot 2>/dev/null | grep -i ditto | grep -i gateway | head -1 | awk '{print $1}' || \
+                        kubectl get svc -n iot 2>/dev/null | grep -i ditto | head -1 | awk '{print $1}' || \
+                        echo "ditto-nginx")
+        if [ -n "$DITTO_SERVICE" ]; then
+            (start_port_forward "ditto" "iot" "$DITTO_SERVICE" 8083 8080 2>/dev/null) || true
+        fi
+        
+        # ThingsBoard - direct service name
         (start_port_forward "thingsboard" "iot" "thingsboard" 9091 9090 2>/dev/null) || true
+        
+        # Node-RED - direct service name
         (start_port_forward "node-red" "iot" "node-red" 1880 1880 2>/dev/null) || true
     fi
     
