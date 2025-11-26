@@ -1,0 +1,73 @@
+# Eclipse Ditto Helm Values
+# Using atnog/ditto-helm-chart
+
+# MongoDB configuration
+mongodb:
+  enabled: false  # Use external MongoDB
+  external:
+    host: "mongodb-ditto.iot.svc.cluster.local"
+    port: 27017
+    database: "ditto"
+    username: "ditto"
+    password: "ditto-mongodb-password"  # Match mongodb-ditto-values.yaml
+
+# Kafka configuration
+kafka:
+  enabled: false  # Use existing Kafka
+  external:
+    bootstrapServers: "kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092"
+    # Topics for Ditto
+    topics:
+      things: "ditto.things"
+      thingsLive: "ditto.things.live"
+      thingsTwin: "ditto.things.twin"
+      policies: "ditto.policies"
+      search: "ditto.search"
+    # Security configuration (if Kafka uses TLS/SASL)
+    # securityProtocol: "SASL_PLAINTEXT"
+    # saslMechanism: "PLAIN"
+
+# Service components
+services:
+  # Gateway service (REST API)
+  gateway:
+    enabled: true
+    replicas: 1
+    service:
+      type: ClusterIP
+      port: 8080
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "200m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+  
+  # Services (Things, Policies, Search)
+  services:
+    enabled: true
+    replicas: 1
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "200m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+
+# API configuration
+api:
+  # REST API endpoints
+  rest:
+    enabled: true
+    basePath: "/api"
+  
+  # WebSocket API
+  websocket:
+    enabled: true
+
+# Authentication (optional - enable for production)
+auth:
+  enabled: false
+

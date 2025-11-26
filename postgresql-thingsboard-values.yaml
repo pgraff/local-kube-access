@@ -1,0 +1,39 @@
+# PostgreSQL Helm Values for ThingsBoard
+# Using bitnami/postgresql chart
+
+# Storage configuration
+persistence:
+  enabled: true
+  storageClass: "longhorn"
+  size: 50Gi
+  accessMode: ReadWriteOnce
+
+# Authentication
+auth:
+  postgresPassword: "thingsboard-postgres-password"  # Change in production!
+  username: "thingsboard"
+  password: "thingsboard-password"  # Change in production!
+  database: "thingsboard"
+
+# Resource limits
+resources:
+  requests:
+    memory: "1Gi"
+    cpu: "500m"
+  limits:
+    memory: "2Gi"
+    cpu: "1000m"
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 5432
+
+# Metrics (optional)
+metrics:
+  enabled: false
+
+# High availability (optional)
+postgresqlReplication:
+  enabled: false
+

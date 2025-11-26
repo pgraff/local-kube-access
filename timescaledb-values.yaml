@@ -1,0 +1,47 @@
+# TimescaleDB Helm Values
+# Using timescale/timescaledb-single chart
+
+# Replica count (1 for single node, 3+ for HA)
+replicaCount: 1
+
+# Persistent volumes
+persistentVolumes:
+  data:
+    enabled: true
+    size: 100Gi
+    storageClass: "longhorn"
+    accessModes:
+      - ReadWriteOnce
+  wal:
+    enabled: true
+    size: 10Gi
+    storageClass: "longhorn"
+    accessModes:
+      - ReadWriteOnce
+
+# Resource limits
+resources:
+  requests:
+    memory: "2Gi"
+    cpu: "1000m"
+  limits:
+    memory: "4Gi"
+    cpu: "2000m"
+
+# Service configuration
+service:
+  primary:
+    type: ClusterIP
+    port: 5432
+
+# Secrets for database credentials
+secrets:
+  credentials:
+    PATRONI_SUPERUSER_PASSWORD: "timescaledb-superuser-password"  # Change in production!
+    PATRONI_REPLICATION_PASSWORD: "timescaledb-replication-password"  # Change in production!
+    PATRONI_admin_PASSWORD: "timescaledb-admin-password"  # Change in production!
+
+# Backup configuration (optional)
+backup:
+  enabled: false
+

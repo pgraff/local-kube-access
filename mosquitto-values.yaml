@@ -1,0 +1,53 @@
+# Eclipse Mosquitto MQTT Broker Helm Values
+# Using cloudnesil/eclipse-mosquitto-mqtt-broker-helm-chart
+
+# Image configuration
+image:
+  repository: eclipse-mosquitto
+  tag: "2.0"
+  pullPolicy: IfNotPresent
+
+# Service configuration
+service:
+  type: ClusterIP
+  mqtt:
+    port: 1883
+  websockets:
+    port: 9001
+    enabled: true
+
+# Resource limits
+resources:
+  requests:
+    memory: "128Mi"
+    cpu: "100m"
+  limits:
+    memory: "256Mi"
+    cpu: "500m"
+
+# Persistence (config only, no data)
+persistence:
+  enabled: true
+  storageClass: "longhorn"
+  size: 1Gi
+  accessMode: ReadWriteOnce
+
+# Configuration for MQTT bridge to Hono
+# This will be configured via ConfigMap
+config:
+  # Bridge configuration to forward to Hono
+  bridge:
+    enabled: true
+    connection: "hono-mqtt-adapter"
+    address: "hono-mqtt-adapter.iot.svc.cluster.local"
+    port: 1883
+    topic: "telemetry/+/+"
+    remoteTopic: "telemetry/+/+"
+
+# Authentication (optional - enable for production)
+auth:
+  enabled: false
+  # users:
+  #   - username: "device1"
+  #     password: "password1"
+

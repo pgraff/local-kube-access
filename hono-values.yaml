@@ -1,0 +1,95 @@
+# Eclipse Hono Helm Values
+# Using eclipse-iot/hono chart
+
+# Disable Hono's example Kafka cluster and use external Kafka
+kafkaMessagingClusterExample:
+  enabled: false
+
+# Configure adapters to use external Kafka
+adapters:
+  kafkaMessagingSpec:
+    commonClientConfig:
+      "bootstrap.servers": "kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092"
+      # Security configuration (if Kafka uses TLS/SASL)
+      # "security.protocol": "SASL_PLAINTEXT"
+      # "sasl.mechanism": "PLAIN"
+      # "sasl.username": ""
+      # "sasl.password": ""
+
+# MongoDB configuration for device registry
+mongodb:
+  enabled: false  # Use external MongoDB
+  external:
+    host: "mongodb-hono.iot.svc.cluster.local"
+    port: 27017
+    database: "hono"
+    username: "hono"
+    password: "hono-mongodb-password"  # Match mongodb-hono-values.yaml
+
+# Device Registry Kafka configuration
+components:
+  deviceRegistry:
+    kafka:
+      commonClientConfig:
+        "bootstrap.servers": "kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092"
+
+# Service components
+components:
+  # Device Registry
+  deviceRegistry:
+    enabled: true
+    replicas: 1
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "200m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+  
+  # MQTT Adapter
+  mqttAdapter:
+    enabled: true
+    replicas: 1
+    service:
+      type: ClusterIP
+      port: 1883
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+  
+  # HTTP Adapter
+  httpAdapter:
+    enabled: true
+    replicas: 1
+    service:
+      type: ClusterIP
+      port: 8080
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+  
+  # AMQP Adapter (optional)
+  amqpAdapter:
+    enabled: false
+
+# Telemetry topics configuration
+telemetry:
+  topics:
+    telemetry: "hono.telemetry"
+    event: "hono.event"
+    command: "hono.command"
+
+# Tenant configuration
+tenants:
+  default:
+    enabled: true
+

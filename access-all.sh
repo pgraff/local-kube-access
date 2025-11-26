@@ -73,6 +73,45 @@ check_port() {
     return 0  # Port is free
 }
 
+# Function to check if pod/service is ready
+check_service_ready() {
+    local namespace=$1
+    local service=$2
+    
+    # Check if service exists
+    if ! kubectl get svc -n "$namespace" "$service" > /dev/null 2>&1; then
+        return 1
+    fi
+    
+    # Get the selector from the service
+    local selector=$(kubectl get svc -n "$namespace" "$service" -o jsonpath='{.spec.selector}' 2>/dev/null)
+    if [ -z "$selector" ] || [ "$selector" = "{}" ]; then
+        # Service has no selector, assume it's ready if service exists
+        return 0
+    fi
+    
+    # Convert selector JSON to label selector format
+    local label_selector=""
+    if [ -n "$selector" ] && [ "$selector" != "{}" ]; then
+        # Extract key-value pairs from JSON selector
+        label_selector=$(echo "$selector" | python3 -c "import sys, json; d=json.load(sys.stdin); print(','.join([f'{k}={v}' for k,v in d.items()]))" 2>/dev/null || echo "")
+    fi
+    
+    if [ -z "$label_selector" ]; then
+        # Can't determine selector, assume ready
+        return 0
+    fi
+    
+    # Check if any pods are ready
+    local ready_pods=$(kubectl get pods -n "$namespace" --selector="$label_selector" -o jsonpath='{.items[?(@.status.conditions[?(@.type=="Ready")].status=="True")].metadata.name}' 2>/dev/null | wc -w)
+    
+    if [ "$ready_pods" -gt 0 ]; then
+        return 0
+    fi
+    
+    return 1
+}
+
 # Function to start a port-forward
 start_port_forward() {
     local name=$1
@@ -88,6 +127,13 @@ start_port_forward() {
         return 1
     fi
     
+    # Check if service/pod is ready (optional check - don't fail if not ready, just warn)
+    if ! check_service_ready "$namespace" "$service"; then
+        print_warning "$name service/pod may not be ready (checking pod status...)"
+        local pod_status=$(kubectl get pods -n "$namespace" -l $(kubectl get svc -n "$namespace" "$service" -o jsonpath='{.spec.selector}' | python3 -c "import sys, json; d=json.load(sys.stdin); print(','.join([f'{k}={v}' for k,v in d.items()]))" 2>/dev/null || echo "") --no-headers 2>/dev/null | head -1 | awk '{print $3}' || echo "unknown")
+        print_warning "Pod status: $pod_status. Port-forward may fail - will attempt anyway."
+    fi
+    
     print_status "Starting $name on port $local_port..."
     
     # Start port-forward in background
@@ -95,10 +141,27 @@ start_port_forward() {
     local pid=$!
     
     # Wait a moment to check if it started successfully
-    sleep 2
+    sleep 3
     if ! kill -0 "$pid" 2>/dev/null; then
-        print_error "Failed to start $name. Check $log_file for details."
+        # Check log for specific errors
+        if [ -f "$log_file" ] && grep -q "pod is not running" "$log_file"; then
+            print_error "Failed to start $name: Pod is not running (may be Pending or CrashLoopBackOff)."
+            print_error "Check pod status: kubectl get pods -n $namespace"
+        else
+            print_error "Failed to start $name. Check $log_file for details."
+            if [ -f "$log_file" ] && [ -s "$log_file" ]; then
+                print_error "Last few lines:"
+                tail -3 "$log_file" | sed 's/^/  /'
+            fi
+        fi
         return 1
+    fi
+    
+    # Verify port is actually listening (give it a bit more time)
+    sleep 1
+    if ! lsof -i :$local_port 2>/dev/null | grep -q LISTEN; then
+        print_warning "$name process is running but port $local_port not listening yet."
+        print_warning "This may be normal - the connection may establish shortly."
     fi
     
     # Save PID
@@ -266,12 +329,28 @@ main() {
     print_status "Starting all cluster service port-forwards..."
     echo ""
     
-    # Start all services
+    # Start core services (always try these)
     start_rancher
     start_port_forward "longhorn" "longhorn-system" "longhorn-frontend" 8080 80
     start_port_forward "kubecost" "kubecost" "kubecost-cost-analyzer" 9090 9090
     start_port_forward "kafka-ui" "kafka" "kafka-ui" 8081 8080
     start_port_forward "kafka" "kafka" "kafka-cluster-kafka-bootstrap" 9092 9092
+    
+    # IoT Stack services (only if namespace exists and services are ready)
+    if kubectl get namespace iot &>/dev/null; then
+        print_status "Checking IoT stack services (optional - failures are normal if pods aren't ready)..."
+        # Try to start IoT services, but don't fail if they don't exist or aren't ready
+        # Suppress error output since failures are expected if pods aren't ready
+        (start_port_forward "mosquitto" "iot" "mosquitto" 1883 1883 2>/dev/null) || true
+        # Hono service name may vary - try common names
+        (start_port_forward "hono" "iot" "hono-http-adapter" 8082 8080 2>/dev/null || \
+         start_port_forward "hono" "iot" "hono-adapter-http" 8082 8080 2>/dev/null) || true
+        # Ditto service name may vary
+        (start_port_forward "ditto" "iot" "ditto-gateway" 8083 8080 2>/dev/null || \
+         start_port_forward "ditto" "iot" "ditto-gateway-service" 8083 8080 2>/dev/null) || true
+        (start_port_forward "thingsboard" "iot" "thingsboard" 9091 9090 2>/dev/null) || true
+        (start_port_forward "node-red" "iot" "node-red" 1880 1880 2>/dev/null) || true
+    fi
     
     echo ""
     print_status "All port-forwards started!"
@@ -296,6 +375,13 @@ main() {
     echo "  📨 Kafka Bootstrap:"
     echo "     localhost:9092"
     echo ""
+    echo "  🔌 IoT Stack Services:"
+    echo "     Mosquitto MQTT:    localhost:1883"
+    echo "     Hono HTTP:         http://localhost:8082"
+    echo "     Ditto API:         http://localhost:8083"
+    echo "     ThingsBoard:       http://localhost:9091"
+    echo "     Node-RED:          http://localhost:1880"
+    echo ""
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo ""
     print_status "Port-forwards are running in the background."
@@ -311,16 +397,98 @@ main() {
     # Wait for user interrupt
     trap 'stop_all' INT TERM
     
-    # Keep script running
+    # Keep script running with improved monitoring
+    local warning_cooldown=300  # 5 minutes between warnings for same process
+    local check_count=0
+    
     while true; do
         sleep 60
-        # Check if any process died
+        check_count=$((check_count + 1))
+        
+        # Check if any process died (but don't spam warnings)
         if [ -f "$PID_FILE" ]; then
+            local current_time=$(date +%s)
+            local temp_warnings="/tmp/k8s-access-warnings.$$"
+            > "$temp_warnings"
+            local warned_pids=()
+            
             while read -r pid; do
                 if ! kill -0 "$pid" 2>/dev/null; then
-                    print_warning "Process $pid has stopped. Check logs in $LOG_DIR"
+                    # Check if we've warned about this PID recently
+                    local last_warn_file="/tmp/k8s-access-warn-$pid"
+                    local last_warn_time=0
+                    if [ -f "$last_warn_file" ]; then
+                        last_warn_time=$(cat "$last_warn_file" 2>/dev/null || echo "0")
+                    fi
+                    
+                    local time_since_warn=$((current_time - last_warn_time))
+                    if [ $time_since_warn -gt $warning_cooldown ]; then
+                        echo "$pid" >> "$temp_warnings"
+                        echo "$current_time" > "$last_warn_file"
+                        warned_pids+=("$pid")
+                    fi
                 fi
             done < "$PID_FILE"
+            
+            # Only show warnings if there are new ones (and not on every check - reduce noise)
+            # Check every 10 minutes (every 10 iterations) to avoid spam
+            # Also, don't warn about IoT services that fail - that's expected if pods aren't ready
+            if [ ${#warned_pids[@]} -gt 0 ] && [ $((check_count % 10)) -eq 0 ]; then
+                for pid in "${warned_pids[@]}"; do
+                    # Try to identify which service this was by checking logs
+                    local service_name="unknown service"
+                    local log_file=""
+                    
+                    # Check log files to identify service
+                    for log in "$LOG_DIR"/*.log; do
+                        if [ -f "$log" ] && grep -q "port-forward.*$pid\|PID.*$pid" "$log" 2>/dev/null; then
+                            service_name=$(basename "$log" .log)
+                            log_file="$log"
+                            break
+                        fi
+                    done
+                    
+                    # Also try to get from process command if still in process list
+                    local cmd=$(ps -p "$pid" -o command= 2>/dev/null || echo "")
+                    if [ -n "$cmd" ]; then
+                        if echo "$cmd" | grep -q "rancher"; then
+                            service_name="Rancher"
+                        elif echo "$cmd" | grep -q "longhorn"; then
+                            service_name="Longhorn"
+                        elif echo "$cmd" | grep -q "kubecost"; then
+                            service_name="Kubecost"
+                        elif echo "$cmd" | grep -q "kafka"; then
+                            service_name="Kafka"
+                        elif echo "$cmd" | grep -q "mosquitto\|hono\|ditto\|thingsboard\|node-red"; then
+                            service_name="IoT Stack"
+                        fi
+                    fi
+                    
+                    # Don't warn about IoT services - failures are expected if pods aren't ready
+                    if [[ "$service_name" != *"iot"* ]] && [[ "$service_name" != *"IoT"* ]] && [[ "$service_name" != *"mosquitto"* ]] && [[ "$service_name" != *"hono"* ]] && [[ "$service_name" != *"ditto"* ]] && [[ "$service_name" != *"thingsboard"* ]] && [[ "$service_name" != *"node-red"* ]]; then
+                        print_warning "$service_name port-forward (PID: $pid) has stopped."
+                        
+                        # Check log for specific error
+                        if [ -n "$log_file" ] && [ -f "$log_file" ]; then
+                            if grep -q "pod is not running\|Pending\|CrashLoopBackOff" "$log_file" 2>/dev/null; then
+                                print_warning "Reason: Pod is not ready. This is normal if the pod is still starting."
+                                print_warning "Check pod status: kubectl get pods --all-namespaces | grep -i $service_name"
+                            else
+                                print_warning "Check logs: $log_file"
+                            fi
+                        else
+                            print_warning "This may be normal if the pod is not ready. Check logs in $LOG_DIR"
+                        fi
+                    fi
+                done
+                
+                # Only print separator if we showed warnings
+                if [ ${#warned_pids[@]} -gt 0 ]; then
+                    echo ""
+                fi
+            fi
+            
+            rm -f "$temp_warnings"
         fi
     done
 }

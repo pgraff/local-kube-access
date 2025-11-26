@@ -1,0 +1,132 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mosquitto-config
+  namespace: iot
+data:
+  mosquitto.conf: |
+    # Mosquitto MQTT Broker Configuration
+    
+    # Network listeners
+    listener 1883
+    allow_anonymous true
+    
+    # WebSocket support
+    listener 9001
+    protocol websockets
+    allow_anonymous true
+    
+    # Logging
+    log_dest stdout
+    log_type all
+    log_timestamp true
+    
+    # Persistence
+    persistence true
+    persistence_location /mosquitto/data/
+    persistence_file mosquitto.db
+    
+    # Bridge configuration to Hono (optional - can be configured later)
+    # connection hono-bridge
+    # address hono-mqtt-adapter.iot.svc.cluster.local
+    # port 1883
+    # topic telemetry/# out 0 telemetry/#
+    # try_private false
+    # start_type automatic
+    
+    # Security (enable for production)
+    # password_file /mosquitto/config/passwd
+    # acl_file /mosquitto/config/acl
+    
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mosquitto-data
+  namespace: iot
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mosquitto
+  namespace: iot
+  labels:
+    app: mosquitto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mosquitto
+  template:
+    metadata:
+      labels:
+        app: mosquitto
+    spec:
+      containers:
+      - name: mosquitto
+        image: eclipse-mosquitto:2.0
+        ports:
+        - containerPort: 1883
+          name: mqtt
+          protocol: TCP
+        - containerPort: 9001
+          name: websockets
+          protocol: TCP
+        volumeMounts:
+        - name: mosquitto-config
+          mountPath: /mosquitto/config
+        - name: mosquitto-data
+          mountPath: /mosquitto/data
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        livenessProbe:
+          tcpSocket:
+            port: 1883
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          tcpSocket:
+            port: 1883
+          initialDelaySeconds: 10
+          periodSeconds: 5
+      volumes:
+      - name: mosquitto-config
+        configMap:
+          name: mosquitto-config
+      - name: mosquitto-data
+        persistentVolumeClaim:
+          claimName: mosquitto-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mosquitto
+  namespace: iot
+  labels:
+    app: mosquitto
+spec:
+  type: ClusterIP
+  ports:
+  - port: 1883
+    targetPort: 1883
+    protocol: TCP
+    name: mqtt
+  - port: 9001
+    targetPort: 9001
+    protocol: TCP
+    name: websockets
+  selector:
+    app: mosquitto
+

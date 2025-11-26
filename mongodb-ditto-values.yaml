@@ -1,0 +1,39 @@
+# MongoDB Helm Values for Eclipse Ditto
+# Using bitnami/mongodb chart
+
+# Architecture: standalone (single node)
+architecture: standalone
+
+# Storage configuration
+persistence:
+  enabled: true
+  storageClass: "longhorn"
+  size: 20Gi
+  accessMode: ReadWriteOnce
+
+# Authentication
+auth:
+  enabled: true
+  rootPassword: "ditto-mongodb-root-password"  # Change in production!
+  username: "ditto"
+  password: "ditto-mongodb-password"  # Change in production!
+  database: "ditto"
+
+# Resource limits
+resources:
+  requests:
+    memory: "1Gi"
+    cpu: "500m"
+  limits:
+    memory: "2Gi"
+    cpu: "1000m"
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 27017
+
+# Metrics (optional)
+metrics:
+  enabled: false
+

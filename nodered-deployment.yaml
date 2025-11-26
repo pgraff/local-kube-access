@@ -1,0 +1,120 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: node-red-config
+  namespace: iot
+data:
+  settings.js: |
+    module.exports = {
+      uiPort: process.env.PORT || 1880,
+      mqttEndpoint: 'mqtt://mosquitto:1883',
+      httpNodeRoot: '/',
+      httpAdminRoot: '/',
+      httpStatic: '/public',
+      functionGlobalContext: {},
+      debugMaxLength: 1000,
+      editorTheme: {
+        projects: {
+          enabled: false
+        }
+      }
+    }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: node-red-data
+  namespace: iot
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-red
+  namespace: iot
+  labels:
+    app: node-red
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: node-red
+  template:
+    metadata:
+      labels:
+        app: node-red
+    spec:
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+        runAsNonRoot: true
+      containers:
+      - name: node-red
+        image: nodered/node-red:latest
+        ports:
+        - containerPort: 1880
+          name: http
+        env:
+        - name: PORT
+          value: "1880"
+        - name: NODE_RED_CREDENTIAL_SECRET
+          value: "node-red-secret-key-change-in-production"
+        securityContext:
+          runAsUser: 1000
+          runAsNonRoot: true
+        volumeMounts:
+        - name: node-red-data
+          mountPath: /data
+        - name: node-red-config
+          mountPath: /data/settings.js
+          subPath: settings.js
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 1880
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 1880
+          initialDelaySeconds: 10
+          periodSeconds: 5
+      volumes:
+      - name: node-red-data
+        persistentVolumeClaim:
+          claimName: node-red-data
+      - name: node-red-config
+        configMap:
+          name: node-red-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-red
+  namespace: iot
+  labels:
+    app: node-red
+spec:
+  type: ClusterIP
+  ports:
+  - port: 1880
+    targetPort: 1880
+    protocol: TCP
+    name: http
+  selector:
+    app: node-red
+

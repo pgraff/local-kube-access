@@ -1,0 +1,67 @@
+# ThingsBoard Community Edition Helm Values
+# Using thingsboard/thingsboard chart
+
+# Database configuration
+database:
+  type: postgresql
+  host: "postgresql-thingsboard.iot.svc.cluster.local"
+  port: 5432
+  name: "thingsboard"
+  username: "thingsboard"
+  password: "thingsboard-password"  # Match postgresql-thingsboard-values.yaml
+
+# Kafka configuration
+kafka:
+  enabled: false  # Use existing Kafka
+  bootstrapServers: "kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092"
+  # Topics
+  topics:
+    telemetry: "thingsboard.telemetry"
+    attributes: "thingsboard.attributes"
+    events: "thingsboard.events"
+  # Security configuration (if Kafka uses TLS/SASL)
+  # securityProtocol: "SASL_PLAINTEXT"
+  # saslMechanism: "PLAIN"
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 9090
+  httpPort: 80
+  httpsPort: 443
+
+# Resource limits
+resources:
+  requests:
+    memory: "2Gi"
+    cpu: "1000m"
+  limits:
+    memory: "4Gi"
+    cpu: "2000m"
+
+# Replicas
+replicas: 1
+
+# Persistence
+persistence:
+  enabled: true
+  storageClass: "longhorn"
+  size: 10Gi
+  accessMode: ReadWriteOnce
+
+# Cache configuration (Redis - optional)
+cache:
+  type: memory  # Use in-memory cache (or configure Redis)
+
+# Queue configuration
+queue:
+  type: kafka  # Use Kafka for message queue
+
+# Mail configuration (optional)
+mail:
+  enabled: false
+
+# OAuth2 configuration (optional)
+oauth2:
+  enabled: false
+

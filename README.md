@@ -49,6 +49,7 @@ This repository contains documentation, scripts, and configuration files for man
 - **Management**: Rancher v2.13.0-rc3
 - **Cost Analysis**: Kubecost
 - **Message Broker**: Kafka 4.1.1 (KRaft mode, 3 controllers, 5 brokers)
+- **IoT Platform**: Complete stack with Mosquitto, Hono, Ditto, ThingsBoard, TimescaleDB, and Node-RED
 
 ### Node Configuration
 - **Control Plane**: 3 nodes (k8s-cp-01, k8s-cp-02, k8s-cp-03)
@@ -118,6 +119,23 @@ This repository contains documentation, scripts, and configuration files for man
 # Note: Uses port 8081 (8080 is used by Longhorn)
 ```
 
+### IoT Stack
+```bash
+# Deploy the complete IoT stack
+./deploy-iot-stack.sh
+
+# Access individual services
+./access-mosquitto.sh      # MQTT broker: localhost:1883
+./access-hono.sh           # Hono HTTP: localhost:8082
+./access-ditto.sh          # Ditto API: localhost:8083
+./access-thingsboard.sh    # ThingsBoard: localhost:9091
+./access-nodered.sh        # Node-RED: localhost:1880
+
+# Uninstall IoT stack
+./uninstall-iot-stack.sh
+```
+See [IoT Stack Setup Guide](iot-setup-guide.md) for complete documentation.
+
 ### Lens (Kubernetes IDE)
 1. Import kubeconfig: `~/.kube/config-rke2-cluster.yaml`
 2. See [Lens Setup Guide](setup-lens.md) for details
@@ -138,6 +156,7 @@ This repository contains documentation, scripts, and configuration files for man
 - **[Kubecost Grafana Prometheus Metrics](kubecost-grafana-prometheus-troubleshooting.md)** - Troubleshooting Prometheus metrics not showing in Grafana
 - **[Kafka Setup Guide](kafka-setup-guide.md)** - Kafka cluster with 3 controllers and 5 brokers
 - **[Kafka UI Setup Guide](kafka-ui-setup-guide.md)** - Kafka UI dashboard for monitoring and management
+- **[IoT Stack Setup Guide](iot-setup-guide.md)** - Complete IoT platform with Mosquitto, Hono, Ditto, ThingsBoard, TimescaleDB, and Node-RED
 - **[Strimzi Local-Path Workaround](strimzi-local-path-workaround.md)** - Fix for Strimzi with local-path storage
 - **[Add Node Guide](add-node-guide.md)** - How to add new nodes to the RKE2 cluster
 
@@ -157,6 +176,13 @@ All scripts use your local kubeconfig and work from anywhere (Mac, Linux, etc.):
 - **`access-kubecost.sh`** - Port-forward to Kubecost UI (port 9090)
 - **`access-kafka.sh`** - Port-forward to Kafka bootstrap service (port 9092)
 - **`access-kafka-ui.sh`** - Port-forward to Kafka UI dashboard (port 8081)
+- **`deploy-iot-stack.sh`** - Deploy complete IoT stack (Mosquitto, Hono, Ditto, ThingsBoard, TimescaleDB, Node-RED)
+- **`uninstall-iot-stack.sh`** - Uninstall complete IoT stack
+- **`access-mosquitto.sh`** - Port-forward to Mosquitto MQTT broker (port 1883)
+- **`access-hono.sh`** - Port-forward to Hono HTTP adapter (port 8082)
+- **`access-ditto.sh`** - Port-forward to Ditto API (port 8083)
+- **`access-thingsboard.sh`** - Port-forward to ThingsBoard (port 9091)
+- **`access-nodered.sh`** - Port-forward to Node-RED (port 1880)
 
 ### Setup Scripts
 - **`setup-remote-laptop.sh`** - Automated setup for new machines (installs kubectl, verifies connection)
