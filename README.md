@@ -135,6 +135,7 @@ This repository contains documentation, scripts, and configuration files for man
 - **[Kubecost Cluster ID Fix](kubecost-clusterid-fix.md)** - Troubleshooting Kubecost installation
 - **[Kubecost Grafana Fix](kubecost-grafana-fix.md)** - Fix for Grafana 502 Bad Gateway error
 - **[Kubecost Grafana No Data](kubecost-grafana-no-data-fix.md)** - Troubleshooting when Grafana shows no data
+- **[Kubecost Grafana Prometheus Metrics](kubecost-grafana-prometheus-troubleshooting.md)** - Troubleshooting Prometheus metrics not showing in Grafana
 - **[Kafka Setup Guide](kafka-setup-guide.md)** - Kafka cluster with 3 controllers and 5 brokers
 - **[Kafka UI Setup Guide](kafka-ui-setup-guide.md)** - Kafka UI dashboard for monitoring and management
 - **[Strimzi Local-Path Workaround](strimzi-local-path-workaround.md)** - Fix for Strimzi with local-path storage

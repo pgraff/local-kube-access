@@ -213,5 +213,6 @@ kubectl port-forward -n kubecost svc/kubecost-prometheus-server 9091:80
 ## Related Documentation
 
 - [Kubecost Grafana Fix](kubecost-grafana-fix.md) - Fix for 502 Bad Gateway
+- [Kubecost Grafana Prometheus Metrics](kubecost-grafana-prometheus-troubleshooting.md) - Detailed troubleshooting for Prometheus metrics in Grafana
 - [Kubecost Cluster ID Fix](kubecost-clusterid-fix.md) - Initial installation troubleshooting
 
