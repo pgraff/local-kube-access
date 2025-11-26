@@ -51,9 +51,9 @@ stop_all() {
     
     # Also kill any remaining port-forwards
     pkill -f "kubectl port-forward" 2>/dev/null || true
-    pkill -f "ssh.*k8s-cp-01" 2>/dev/null || true
+    pkill -f "ssh.*-L.*8443.*8444.*k8s-cp-01" 2>/dev/null || true
     
-    # Kill Rancher port-forward on remote
+    # Kill Rancher port-forward on remote (both kubectl and any SSH sessions)
     ssh scispike@k8s-cp-01 "pkill -f 'kubectl port-forward.*rancher' || true" 2>/dev/null || true
     
     # Clean up log files
@@ -126,22 +126,43 @@ start_rancher() {
     
     local log_file="$LOG_DIR/rancher.log"
     
-    # Start SSH tunnel with port forwarding (same as access-rancher.sh)
-    # This creates local port forwarding AND runs kubectl port-forward on remote
-    # Note: Using -f puts SSH in background, so we need to find the PID differently
-    ssh -f -N -L $http_port:localhost:$http_port -L $https_port:localhost:$https_port \
-        scispike@k8s-cp-01 "~/kubectl port-forward -n cattle-system service/rancher $http_port:80 $https_port:443" \
-        2>"$log_file" 1>&2
+    # First, ensure any existing port-forwards on remote are killed
+    ssh scispike@k8s-cp-01 "pkill -f 'kubectl port-forward.*rancher' || true" 2>/dev/null
+    sleep 1
     
-    # Wait a moment for SSH to start
+    # Start kubectl port-forward on remote in background
+    # Use nohup and redirect output so it persists after SSH session
+    ssh scispike@k8s-cp-01 "nohup ~/kubectl port-forward -n cattle-system service/rancher $http_port:80 $https_port:443 > /tmp/rancher-pf.log 2>&1 < /dev/null &" 2>"$log_file"
+    
+    # Wait for remote port-forward to start
+    sleep 3
+    
+    # Verify remote port-forward is running
+    local remote_pf_running=$(ssh scispike@k8s-cp-01 "ps aux | grep '[k]ubectl port-forward.*rancher.*8443' | wc -l" 2>/dev/null || echo "0")
+    if [ "$remote_pf_running" -eq "0" ]; then
+        print_error "Failed to start kubectl port-forward on remote server."
+        if [ -f "$log_file" ] && [ -s "$log_file" ]; then
+            print_error "SSH log:"
+            tail -5 "$log_file" | sed 's/^/  /'
+        fi
+        print_error "Check SSH connectivity and kubectl availability on k8s-cp-01"
+        return 1
+    fi
+    
+    # Now start local SSH tunnel to forward to the remote port-forward
+    # Use -f -N to run in background without executing remote command
+    ssh -f -N -L $http_port:localhost:$http_port -L $https_port:localhost:$https_port scispike@k8s-cp-01 \
+        2>>"$log_file" 1>&2
+    
+    # Wait a moment for SSH tunnel to establish
     sleep 2
     
     # Give it time to establish the connection and start port-forwarding
     sleep 4
     
-    # Find the SSH process PID (the one we just started)
-    # Look for SSH process with our specific port forwarding
-    local pid=$(ps aux | grep "ssh.*-L $http_port:localhost:$http_port.*-L $https_port:localhost:$https_port.*k8s-cp-01" | grep -v grep | awk '{print $2}' | head -1)
+    # Find the SSH tunnel process PID (the one we just started)
+    # Look for SSH process with our specific port forwarding (without the kubectl command part)
+    local pid=$(ps aux | grep "ssh.*-f.*-N.*-L $http_port:localhost:$http_port.*-L $https_port:localhost:$https_port.*k8s-cp-01" | grep -v grep | awk '{print $2}' | head -1)
     
     # Verify ports are actually listening (this is the real test)
     local http_listening=false
