@@ -7,6 +7,7 @@ This guide provides comprehensive testing procedures for verifying that your IoT
 Run the automated test script:
 
 ```bash
+cd iot/scripts
 ./test-iot-stack.sh
 ```
 
@@ -32,6 +33,7 @@ kubectl run mqtt-pub --rm -i --restart=Never \
 **From your local machine (via port-forward):**
 ```bash
 # Start port-forward
+cd iot/scripts
 ./access-mosquitto.sh &
 # Or: kubectl port-forward -n iot svc/mosquitto 1883:1883 &
 
@@ -53,6 +55,7 @@ kubectl run ditto-test --rm -i --restart=Never \
 **From local machine:**
 ```bash
 # Start port-forward
+cd iot/scripts
 ./access-ditto.sh &
 # Or: kubectl port-forward -n iot svc/ditto-nginx 8083:8080 &
 
@@ -64,6 +67,7 @@ curl http://localhost:8083/api/2/things
 **Test Ditto UI:**
 ```bash
 # Access via port-forward
+cd iot/scripts
 ./access-ditto.sh
 # Then open: http://localhost:8083
 ```
@@ -87,6 +91,7 @@ kubectl logs -n iot -l app=hono-adapter-mqtt --tail=20
 **Test HTTP Adapter:**
 ```bash
 # Start port-forward
+cd iot/scripts
 ./access-hono.sh &
 # Or: kubectl port-forward -n iot svc/hono-adapter-http 8082:8080 &
 
@@ -192,6 +197,7 @@ curl http://localhost:8083/api/2/things
 
 **Access ThingsBoard:**
 ```bash
+cd iot/scripts
 ./access-thingsboard.sh
 # Then open: http://localhost:9091
 # Default credentials: sysadmin@thingsboard.org / sysadmin
@@ -214,6 +220,7 @@ curl -H "X-Authorization: Bearer $TOKEN" \
 
 **Access Node-RED:**
 ```bash
+cd iot/scripts
 ./access-nodered.sh
 # Then open: http://localhost:1880
 ```
@@ -333,6 +340,7 @@ kubectl get events -n iot --sort-by='.lastTimestamp'
 
 ---
 
-**Last Updated**: December 2024  
-**Namespace**: `iot`
+**Last Updated**: November 2024  
+**Namespace**: `iot`  
+**Project Structure**: Files organized in `iot/k8s/` and `iot/scripts/` directories
 

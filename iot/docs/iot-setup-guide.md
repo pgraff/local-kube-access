@@ -40,7 +40,8 @@ Home Devices → Mosquitto → Hono → Kafka → TimescaleDB
 
 ```bash
 # Deploy the complete IoT stack
-./scripts/deploy-iot-stack.sh
+cd iot/scripts
+./deploy-iot-stack.sh
 ```
 
 This script will:
@@ -54,7 +55,8 @@ This script will:
 
 ```bash
 # Remove the complete IoT stack
-./scripts/uninstall-iot-stack.sh
+cd iot/scripts
+./uninstall-iot-stack.sh
 ```
 
 ## Manual Deployment Steps
@@ -64,7 +66,7 @@ If you prefer to deploy components individually:
 ### 1. Create Namespace
 
 ```bash
-kubectl apply -f k8s/iot-namespace.yaml
+kubectl apply -f iot/k8s/iot-namespace.yaml
 ```
 
 ### 2. Add Helm Repositories
@@ -84,42 +86,40 @@ helm repo update
 ```bash
 # TimescaleDB
 helm install timescaledb timescale/timescaledb-single \
-  -n iot -f k8s/timescaledb-values.yaml --wait
+  -n iot -f iot/k8s/timescaledb-values.yaml --wait
 
 # MongoDB for Hono
 helm install mongodb-hono bitnami/mongodb \
-  -n iot -f k8s/mongodb-hono-values.yaml --wait
+  -n iot -f iot/k8s/mongodb-hono-values.yaml --wait
 
 # MongoDB for Ditto
 helm install mongodb-ditto bitnami/mongodb \
-  -n iot -f k8s/mongodb-ditto-values.yaml --wait
+  -n iot -f iot/k8s/mongodb-ditto-values.yaml --wait
 
 # PostgreSQL for ThingsBoard
 helm install postgresql-thingsboard bitnami/postgresql \
-  -n iot -f k8s/postgresql-thingsboard-values.yaml --wait
+  -n iot -f iot/k8s/postgresql-thingsboard-values.yaml --wait
 ```
 
 ### 4. Deploy IoT Components
 
 ```bash
-# Mosquitto
-helm install mosquitto cloudnesil/eclipse-mosquitto-mqtt-broker-helm-chart \
-  -n iot -f k8s/mosquitto-values.yaml --wait
+# Mosquitto (direct YAML deployment)
+kubectl apply -f iot/k8s/mosquitto-deployment.yaml -n iot
 
 # Hono
 helm install hono eclipse-iot/hono \
-  -n iot -f k8s/hono-values.yaml --wait
+  -n iot -f iot/k8s/hono-values.yaml --wait
 
 # Ditto
 helm install ditto atnog/ditto-helm-chart \
-  -n iot -f k8s/ditto-values.yaml --wait
+  -n iot -f iot/k8s/ditto-values.yaml --wait
 
-# ThingsBoard
-helm install thingsboard thingsboard/thingsboard \
-  -n iot -f k8s/thingsboard-values.yaml --wait
+# ThingsBoard (direct YAML deployment)
+kubectl apply -f iot/k8s/thingsboard-deployment.yaml -n iot
 
 # Node-RED
-kubectl apply -f k8s/nodered-deployment.yaml -n iot
+kubectl apply -f iot/k8s/nodered-deployment.yaml -n iot
 ```
 
 ## Configuration
@@ -157,16 +157,18 @@ All persistent volumes use Longhorn storage class:
 Individual service access:
 
 ```bash
-./scripts/access-mosquitto.sh    # MQTT broker on localhost:1883
-./scripts/access-hono.sh         # Hono HTTP adapter on localhost:8082
-./scripts/access-ditto.sh        # Ditto API on localhost:8083
-./scripts/access-thingsboard.sh  # ThingsBoard on localhost:9091
-./scripts/access-nodered.sh      # Node-RED on localhost:1880
+cd iot/scripts
+./access-mosquitto.sh    # MQTT broker on localhost:1883
+./access-hono.sh         # Hono HTTP adapter on localhost:8082
+./access-ditto.sh        # Ditto API on localhost:8083
+./access-thingsboard.sh  # ThingsBoard on localhost:9091
+./access-nodered.sh      # Node-RED on localhost:1880
 ```
 
 ### Access All Services
 
 ```bash
+# From project root
 ./access-all.sh
 ```
 
@@ -189,7 +191,7 @@ This starts port-forwards for all services including IoT stack.
   - MQTT Adapter
   - HTTP Adapter
 - **Kafka Integration**: Publishes telemetry to `hono.telemetry.*` topics
-- **Access**: `./access-hono.sh` then `http://localhost:8082`
+- **Access**: `cd iot/scripts && ./access-hono.sh` then `http://localhost:8082`
 
 ### Eclipse Ditto
 
@@ -200,7 +202,7 @@ This starts port-forwards for all services including IoT stack.
   - Things API: `/api/2/things`
   - Policies API: `/api/2/policies`
   - Search API: `/api/2/search`
-- **Access**: `./access-ditto.sh` then `http://localhost:8083/api`
+- **Access**: `cd iot/scripts && ./access-ditto.sh` then `http://localhost:8083/api`
 
 ### ThingsBoard CE
 
@@ -210,7 +212,7 @@ This starts port-forwards for all services including IoT stack.
 - **Default Credentials**:
   - Username: `sysadmin@thingsboard.org`
   - Password: `sysadmin` (change after first login)
-- **Access**: `./access-thingsboard.sh` then `http://localhost:9091`
+- **Access**: `cd iot/scripts && ./access-thingsboard.sh` then `http://localhost:9091`
 
 ### TimescaleDB
 
@@ -224,7 +226,7 @@ This starts port-forwards for all services including IoT stack.
 - **Purpose**: Visual programming for automation
 - **Storage**: 5Gi for flows and data
 - **Integration**: Connect to ThingsBoard, Ditto, Kafka
-- **Access**: `./access-nodered.sh` then `http://localhost:1880`
+- **Access**: `cd iot/scripts && ./access-nodered.sh` then `http://localhost:1880`
 
 ## Data Flow Configuration
 
@@ -265,6 +267,15 @@ kubectl get pods -n iot
 ```
 
 All pods should be in `Running` state.
+
+### Quick Status Check
+
+```bash
+cd iot/scripts
+./iot-status-check.sh
+```
+
+This script provides a quick overview of all IoT stack components.
 
 ### Check Services
 
@@ -315,6 +326,105 @@ kubectl logs -n iot <pod-name>
 kubectl describe pod -n iot <pod-name>
 ```
 
+### Longhorn Volume Issues
+
+If pods are stuck in `Pending` or `Init` state due to volume issues:
+
+1. **Check Longhorn Node Registration**:
+   ```bash
+   kubectl get nodes.longhorn.io -n longhorn-system
+   ```
+   All nodes should be registered. If a node is missing:
+   - Check if Longhorn manager pod is running on that node
+   - Verify `open-iscsi` is installed: `sudo apt-get install -y open-iscsi`
+   - Restart Longhorn manager daemonset if needed
+
+2. **Check Volume Status**:
+   ```bash
+   # Get PVC name
+   kubectl get pvc -n iot
+   
+   # Get PV name from PVC
+   PVC_NAME=<pvc-name>
+   PV_NAME=$(kubectl get pvc -n iot $PVC_NAME -o jsonpath='{.spec.volumeName}')
+   
+   # Check Longhorn volume status
+   kubectl get volume.longhorn.io -n longhorn-system $PV_NAME
+   ```
+
+3. **Volume Attachment Issues**:
+   - If volume shows "detached" and pod is on unregistered node, reschedule pod:
+     ```bash
+     kubectl patch deployment -n iot <deployment-name> --type='json' \
+       -p='[{"op": "add", "path": "/spec/template/spec/nodeSelector", \
+       "value": {"kubernetes.io/hostname": "<known-node>"}}]'
+     ```
+
+### MongoDB Issues
+
+#### MongoDB User Not Created
+
+If MongoDB starts but Ditto/Hono can't authenticate:
+
+1. **Check if user exists**:
+   ```bash
+   kubectl exec -n iot <mongodb-pod> -c mongodb -- \
+     mongosh admin -u root -p <root-password> \
+     --eval "db.getSiblingDB('ditto').getUsers()"
+   ```
+
+2. **Bitnami MongoDB only creates users on first initialization**:
+   - If persistent data exists from previous deployment, users may not be created
+   - Solution: Delete PVC and let MongoDB reinitialize:
+     ```bash
+     kubectl scale deployment -n iot mongodb-ditto --replicas=0
+     kubectl delete pvc -n iot mongodb-ditto
+     kubectl scale deployment -n iot mongodb-ditto --replicas=1
+     ```
+
+#### MongoDB Illegal Instruction Error
+
+If MongoDB pod crashes with exit code 132 (Illegal instruction):
+
+- This indicates a CPU architecture mismatch or corrupted binary
+- Solution: Reschedule pod to a different node:
+  ```bash
+  kubectl patch deployment -n iot mongodb-ditto --type='json' \
+    -p='[{"op": "add", "path": "/spec/template/spec/nodeSelector", \
+    "value": {"kubernetes.io/hostname": "<working-node>"}}]'
+  ```
+
+### Ditto Health Issues
+
+If Ditto health shows "DOWN":
+
+1. **Check MongoDB connection**:
+   ```bash
+   kubectl logs -n iot <ditto-policies-pod> | grep -i mongo
+   kubectl logs -n iot <ditto-things-pod> | grep -i mongo
+   ```
+
+2. **Verify MongoDB service**:
+   ```bash
+   kubectl get svc -n iot | grep mongodb
+   # Ditto expects service name: ditto-mongodb
+   # If service is mongodb-ditto, create alias:
+   kubectl apply -f iot/k8s/ditto-mongodb-service.yaml
+   ```
+
+3. **Check all Ditto services**:
+   ```bash
+   kubectl get pods -n iot | grep ditto
+   # All services should be Running
+   ```
+
+4. **Restart Ditto services**:
+   ```bash
+   kubectl delete pod -n iot <ditto-policies-pod>
+   kubectl delete pod -n iot <ditto-things-pod>
+   kubectl delete pod -n iot <ditto-connectivity-pod>
+   ```
+
 ### Database Connection Issues
 
 ```bash
@@ -350,6 +460,10 @@ kubectl get pv | grep iot
 
 # Check storage class
 kubectl get storageclass longhorn
+
+# Debug Longhorn volumes (from project root)
+cd cluster/scripts
+./debug-longhorn-volumes.sh
 ```
 
 ### Service Access Issues
@@ -361,6 +475,10 @@ kubectl get svc -n iot
 # Check port-forward
 kubectl get pods -n iot -l app=node-red
 lsof -i :1880  # Check if port is in use
+
+# Check IoT stack status
+cd iot/scripts
+./iot-status-check.sh
 ```
 
 ## Security Considerations
@@ -472,9 +590,25 @@ For issues specific to this deployment:
 
 For component-specific issues, refer to the official documentation for each component.
 
+## Known Issues
+
+### MongoDB Ditto Illegal Instruction
+
+- **Status**: MongoDB Ditto pod may crash with exit code 132 on certain nodes
+- **Impact**: Ditto health remains UP (services connect to MongoDB Hono or use cached connections)
+- **Workaround**: Reschedule MongoDB Ditto to a different node if needed
+- **Tracking**: Monitor MongoDB Ditto pod status
+
+### Node Registration Requirements
+
+- All Kubernetes nodes must have `open-iscsi` installed for Longhorn to work
+- If a node is not registered in Longhorn, volumes cannot attach to pods on that node
+- Install: `sudo apt-get install -y open-iscsi && sudo systemctl enable iscsid && sudo systemctl start iscsid`
+
 ---
 
-**Last Updated**: December 2024  
+**Last Updated**: November 2024  
 **Kubernetes Version**: v1.33.6+rke2r1  
-**Namespace**: `iot`
+**Namespace**: `iot`  
+**Project Structure**: Files organized in `iot/k8s/` and `iot/scripts/` directories
 

@@ -26,19 +26,15 @@ mongodb:
     username: "hono"
     password: "hono-mongodb-password"  # Match mongodb-hono-values.yaml
 
-# Device Registry Kafka configuration
-components:
-  deviceRegistry:
-    kafka:
-      commonClientConfig:
-        "bootstrap.servers": "kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092"
-
 # Service components
 components:
   # Device Registry
   deviceRegistry:
     enabled: true
     replicas: 1
+    kafka:
+      commonClientConfig:
+        "bootstrap.servers": "kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092"
     resources:
       requests:
         memory: "512Mi"

@@ -99,7 +99,7 @@ main() {
     echo "Next steps:"
     echo "  1. Access services: ./access-all.sh"
     echo "  2. Check status: ./iot/scripts/iot-status-check.sh"
-    echo "  3. See full guide: cat iot-testing-guide.md"
+    echo "  3. See full guide: cat iot/docs/iot-testing-guide.md"
     echo ""
 }
 
