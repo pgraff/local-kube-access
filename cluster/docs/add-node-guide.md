@@ -447,6 +447,6 @@ sudo journalctl -u rke2-agent.service -f
 
 - [Cluster Quick Reference](cluster-quick-reference.md)
 - [Longhorn Setup Guide](longhorn-setup-guide.md)
-- [Kafka Setup Guide](kafka-setup-guide.md)
+- [Kafka Setup Guide](../../kafka/docs/kafka-setup-guide.md)
 - [Remote Access Guide](remote-access-guide.md)
 

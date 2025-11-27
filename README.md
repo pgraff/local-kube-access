@@ -34,9 +34,9 @@ This repository contains documentation, scripts, and configuration files for man
 
 3. **Access services**:
    ```bash
-   ./access-rancher.sh    # Rancher UI
-   ./access-longhorn.sh   # Longhorn Storage UI
-   ./access-kubecost.sh   # Kubecost Cost Analysis
+   ./cluster/scripts/access-rancher.sh    # Rancher UI
+   ./cluster/scripts/access-longhorn.sh   # Longhorn Storage UI
+   ./cluster/scripts/access-kubecost.sh   # Kubecost Cost Analysis
    ```
 
 ## 🖥️ Cluster Overview
@@ -85,122 +85,125 @@ This repository contains documentation, scripts, and configuration files for man
 
 ### Rancher (Cluster Management UI)
 ```bash
-./access-rancher.sh
+./cluster/scripts/access-rancher.sh
 # Then open: http://localhost:8443
-# Bootstrap password: See [Cluster Info Summary](cluster-info-summary.md)
+# Bootstrap password: See [Cluster Info Summary](cluster/docs/cluster-info-summary.md)
 ```
 
 ### Longhorn (Storage Management UI)
 ```bash
-./access-longhorn.sh
+./cluster/scripts/access-longhorn.sh
 # Then open: http://localhost:8080
 ```
 
 ### Kubecost (Cost Analysis UI)
 ```bash
-./access-kubecost.sh
+./cluster/scripts/access-kubecost.sh
 # Then open: http://localhost:9090
 # Note: Allow 15-25 minutes for initial metrics collection
 ```
 
 ### Kafka (Message Broker)
 ```bash
-./access-kafka.sh
+./kafka/scripts/access-kafka.sh
 # Then connect to: localhost:9092
-# See [Kafka Setup Guide](kafka-setup-guide.md) for usage examples
+# See [Kafka Setup Guide](kafka/docs/kafka-setup-guide.md) for usage examples
 ```
 
 ### Kafka UI (Kafka Management Dashboard)
 ```bash
-./access-kafka-ui.sh
+./kafka/scripts/access-kafka-ui.sh
 # Then open: http://localhost:8081
 # Features: Topic management, consumer groups, message browser, cluster monitoring
-# See [Kafka UI Setup Guide](kafka-ui-setup-guide.md) for details
+# See [Kafka UI Setup Guide](kafka/docs/kafka-ui-setup-guide.md) for details
 # Note: Uses port 8081 (8080 is used by Longhorn)
 ```
 
 ### IoT Stack
 ```bash
 # Deploy the complete IoT stack
-./deploy-iot-stack.sh
+./iot/scripts/deploy-iot-stack.sh
 
 # Access individual services
-./access-mosquitto.sh      # MQTT broker: localhost:1883
-./access-hono.sh           # Hono HTTP: localhost:8082
-./access-ditto.sh          # Ditto API: localhost:8083
-./access-thingsboard.sh    # ThingsBoard: localhost:9091
-./access-nodered.sh        # Node-RED: localhost:1880
+./iot/scripts/access-mosquitto.sh      # MQTT broker: localhost:1883
+./iot/scripts/access-hono.sh           # Hono HTTP: localhost:8082
+./iot/scripts/access-ditto.sh          # Ditto API: localhost:8083
+./iot/scripts/access-thingsboard.sh    # ThingsBoard: localhost:9091
+./iot/scripts/access-nodered.sh        # Node-RED: localhost:1880
 
 # Uninstall IoT stack
-./uninstall-iot-stack.sh
+./iot/scripts/uninstall-iot-stack.sh
 ```
-See [IoT Stack Setup Guide](iot-setup-guide.md) for complete documentation.
+See [IoT Stack Setup Guide](iot/docs/iot-setup-guide.md) for complete documentation.
 
 ### Lens (Kubernetes IDE)
 1. Import kubeconfig: `~/.kube/config-rke2-cluster.yaml`
-2. See [Lens Setup Guide](setup-lens.md) for details
+2. See [Lens Setup Guide](cluster/docs/setup-lens.md) for details
 
 ## 📚 Documentation
 
 ### Core Documentation
-- **[Cluster Info Summary](cluster-info-summary.md)** - Comprehensive cluster information, configuration, and issues
-- **[Quick Reference](cluster-quick-reference.md)** - Quick commands and common tasks
-- **[Remote Access Guide](remote-access-guide.md)** - How to access the cluster from anywhere
+- **[Cluster Info Summary](cluster/docs/cluster-info-summary.md)** - Comprehensive cluster information, configuration, and issues
+- **[Quick Reference](cluster/docs/cluster-quick-reference.md)** - Quick commands and common tasks
+- **[Remote Access Guide](cluster/docs/remote-access-guide.md)** - How to access the cluster from anywhere
 
 ### Service-Specific Guides
-- **[Longhorn Setup Guide](longhorn-setup-guide.md)** - Distributed storage setup and configuration
-- **[Lens Setup Guide](setup-lens.md)** - Setting up Lens IDE for cluster management
-- **[Kubecost Cluster ID Fix](kubecost-clusterid-fix.md)** - Troubleshooting Kubecost installation
-- **[Kubecost Grafana Fix](kubecost-grafana-fix.md)** - Fix for Grafana 502 Bad Gateway error
-- **[Kubecost Grafana No Data](kubecost-grafana-no-data-fix.md)** - Troubleshooting when Grafana shows no data
-- **[Kubecost Grafana Prometheus Metrics](kubecost-grafana-prometheus-troubleshooting.md)** - Troubleshooting Prometheus metrics not showing in Grafana
-- **[Kafka Setup Guide](kafka-setup-guide.md)** - Kafka cluster with 3 controllers and 5 brokers
-- **[Kafka UI Setup Guide](kafka-ui-setup-guide.md)** - Kafka UI dashboard for monitoring and management
-- **[IoT Stack Setup Guide](iot-setup-guide.md)** - Complete IoT platform with Mosquitto, Hono, Ditto, ThingsBoard, TimescaleDB, and Node-RED
-- **[Strimzi Local-Path Workaround](strimzi-local-path-workaround.md)** - Fix for Strimzi with local-path storage
-- **[Add Node Guide](add-node-guide.md)** - How to add new nodes to the RKE2 cluster
+- **[Longhorn Setup Guide](cluster/docs/longhorn-setup-guide.md)** - Distributed storage setup and configuration
+- **[Lens Setup Guide](cluster/docs/setup-lens.md)** - Setting up Lens IDE for cluster management
+- **[Kubecost Cluster ID Fix](cluster/docs/kubecost-clusterid-fix.md)** - Troubleshooting Kubecost installation
+- **[Kubecost Grafana Fix](cluster/docs/kubecost-grafana-fix.md)** - Fix for Grafana 502 Bad Gateway error
+- **[Kubecost Grafana No Data](cluster/docs/kubecost-grafana-no-data-fix.md)** - Troubleshooting when Grafana shows no data
+- **[Kubecost Grafana Prometheus Metrics](cluster/docs/kubecost-grafana-prometheus-troubleshooting.md)** - Troubleshooting Prometheus metrics not showing in Grafana
+- **[Kafka Setup Guide](kafka/docs/kafka-setup-guide.md)** - Kafka cluster with 3 controllers and 5 brokers
+- **[Kafka UI Setup Guide](kafka/docs/kafka-ui-setup-guide.md)** - Kafka UI dashboard for monitoring and management
+- **[IoT Stack Setup Guide](iot/docs/iot-setup-guide.md)** - Complete IoT platform with Mosquitto, Hono, Ditto, ThingsBoard, TimescaleDB, and Node-RED
+- **[Strimzi Local-Path Workaround](kafka/docs/strimzi-local-path-workaround.md)** - Fix for Strimzi with local-path storage
+- **[Add Node Guide](cluster/docs/add-node-guide.md)** - How to add new nodes to the RKE2 cluster
 
 ### Storage Configuration
-- **[Local Path Storage Class](local-path-storageclass.yaml)** - Local storage provisioner (backup)
-- **[HostPath Storage Class](hostpath-storageclass.yaml)** - Simple hostPath storage class
+- **[Local Path Storage Class](cluster/k8s/local-path-storageclass.yaml)** - Local storage provisioner (backup)
+- **[HostPath Storage Class](cluster/k8s/hostpath-storageclass.yaml)** - Simple hostPath storage class
 
 ## 🛠️ Scripts
 
 ### Access Scripts
 All scripts use your local kubeconfig and work from anywhere (Mac, Linux, etc.):
 
-- **`access-all.sh`** - Start all port-forwards at once (recommended)
-- **`kill-access-all.sh`** - Stop all port-forwards (convenience script)
-- **`access-rancher.sh`** - Port-forward to Rancher UI (ports 8443/8444)
-- **`access-longhorn.sh`** - Port-forward to Longhorn UI (port 8080)
-- **`access-kubecost.sh`** - Port-forward to Kubecost UI (port 9090)
-- **`access-kafka.sh`** - Port-forward to Kafka bootstrap service (port 9092)
-- **`access-kafka-ui.sh`** - Port-forward to Kafka UI dashboard (port 8081)
-- **`deploy-iot-stack.sh`** - Deploy complete IoT stack (Mosquitto, Hono, Ditto, ThingsBoard, TimescaleDB, Node-RED)
-- **`uninstall-iot-stack.sh`** - Uninstall complete IoT stack
-- **`access-mosquitto.sh`** - Port-forward to Mosquitto MQTT broker (port 1883)
-- **`access-hono.sh`** - Port-forward to Hono HTTP adapter (port 8082)
-- **`access-ditto.sh`** - Port-forward to Ditto API (port 8083)
-- **`access-thingsboard.sh`** - Port-forward to ThingsBoard (port 9091)
-- **`access-nodered.sh`** - Port-forward to Node-RED (port 1880)
+- **`access-all.sh`** - Start all port-forwards at once (recommended) - in root
+- **`kill-access-all.sh`** - Stop all port-forwards (convenience script) - in root
+- **`cluster/scripts/access-rancher.sh`** - Port-forward to Rancher UI (ports 8443/8444)
+- **`cluster/scripts/access-longhorn.sh`** - Port-forward to Longhorn UI (port 8080)
+- **`cluster/scripts/access-kubecost.sh`** - Port-forward to Kubecost UI (port 9090)
+- **`kafka/scripts/access-kafka.sh`** - Port-forward to Kafka bootstrap service (port 9092)
+- **`kafka/scripts/access-kafka-ui.sh`** - Port-forward to Kafka UI dashboard (port 8081)
+- **`iot/scripts/deploy-iot-stack.sh`** - Deploy complete IoT stack (Mosquitto, Hono, Ditto, ThingsBoard, TimescaleDB, Node-RED)
+- **`iot/scripts/uninstall-iot-stack.sh`** - Uninstall complete IoT stack
+- **`iot/scripts/access-mosquitto.sh`** - Port-forward to Mosquitto MQTT broker (port 1883)
+- **`iot/scripts/access-hono.sh`** - Port-forward to Hono HTTP adapter (port 8082)
+- **`iot/scripts/access-ditto.sh`** - Port-forward to Ditto API (port 8083)
+- **`iot/scripts/access-thingsboard.sh`** - Port-forward to ThingsBoard (port 9091)
+- **`iot/scripts/access-nodered.sh`** - Port-forward to Node-RED (port 1880)
 
 ### Setup Scripts
-- **`setup-remote-laptop.sh`** - Automated setup for new machines (installs kubectl, verifies connection)
-- **`gather-cluster-info.sh`** - Comprehensive cluster information gathering (run on control plane)
+- **`cluster/scripts/setup-remote-laptop.sh`** - Automated setup for new machines (installs kubectl, verifies connection)
+- **`cluster/scripts/gather-cluster-info.sh`** - Comprehensive cluster information gathering (run on control plane)
 
 ### Usage
 ```bash
 # Make scripts executable
-chmod +x *.sh
+chmod +x access-all.sh kill-access-all.sh
+chmod +x cluster/scripts/*.sh
+chmod +x kafka/scripts/*.sh
+chmod +x iot/scripts/*.sh
 
 # Start all services at once (recommended)
 ./access-all.sh
 
 # Or access individual services
-./access-rancher.sh
-./access-longhorn.sh
-./access-kubecost.sh
-./access-kafka-ui.sh
+./cluster/scripts/access-rancher.sh
+./cluster/scripts/access-longhorn.sh
+./cluster/scripts/access-kubecost.sh
+./kafka/scripts/access-kafka-ui.sh
 
 # Stop all port-forwards
 ./kill-access-all.sh
@@ -215,7 +218,7 @@ Since all nodes are on Tailscale, you can access the cluster from anywhere:
 
 1. **Install prerequisites**:
    ```bash
-   ./setup-remote-laptop.sh
+   ./cluster/scripts/setup-remote-laptop.sh
    ```
 
 2. **Or manually**:
@@ -233,7 +236,7 @@ Since all nodes are on Tailscale, you can access the cluster from anywhere:
 
 3. **Use the scripts** - They work identically on any machine!
 
-See [Remote Access Guide](remote-access-guide.md) for complete details.
+See [Remote Access Guide](cluster/docs/remote-access-guide.md) for complete details.
 
 ## 🔧 Troubleshooting
 
@@ -251,16 +254,16 @@ See [Remote Access Guide](remote-access-guide.md) for complete details.
 **Storage issues:**
 - Check Longhorn status: `kubectl get pods -n longhorn-system`
 - Verify storage class: `kubectl get storageclass`
-- See [Longhorn Setup Guide](longhorn-setup-guide.md)
+- See [Longhorn Setup Guide](cluster/docs/longhorn-setup-guide.md)
 
 **CNI/Network issues:**
 - Check Cilium: `kubectl get pods -n kube-system -l k8s-app=cilium`
-- See [Cluster Info Summary](cluster-info-summary.md) for resolved issues
+- See [Cluster Info Summary](cluster/docs/cluster-info-summary.md) for resolved issues
 
 ### Getting Help
 
 1. Check the relevant documentation file
-2. Review [Cluster Info Summary](cluster-info-summary.md) for known issues
+2. Review [Cluster Info Summary](cluster/docs/cluster-info-summary.md) for known issues
 3. Check cluster status: `kubectl get nodes,pods --all-namespaces`
 
 ## 📁 File Structure
@@ -268,24 +271,86 @@ See [Remote Access Guide](remote-access-guide.md) for complete details.
 ```
 k8s-home/
 ├── README.md                      # This file
-├── cluster-info-summary.md        # Comprehensive cluster documentation
-├── cluster-quick-reference.md     # Quick commands reference
-├── remote-access-guide.md         # Remote access instructions
-├── longhorn-setup-guide.md        # Longhorn storage guide
-├── setup-lens.md                  # Lens IDE setup
-├── kubecost-clusterid-fix.md      # Kubecost troubleshooting
-├── access-rancher.sh              # Rancher access script
-├── access-longhorn.sh             # Longhorn access script
-├── access-kubecost.sh             # Kubecost access script
-├── access-kafka.sh                # Kafka access script
-├── setup-remote-laptop.sh         # Remote setup automation
-├── gather-cluster-info.sh         # Cluster info gathering script
-├── kafka-kraft-cluster.yaml       # Kafka cluster configuration
-├── create-strimzi-pvcs.sh         # Script to create PVCs for Strimzi
-├── strimzi-local-path-workaround.md # Workaround documentation
-├── add-node-guide.md              # Guide for adding new nodes
-├── local-path-storageclass.yaml   # Local storage provisioner
-└── hostpath-storageclass.yaml     # HostPath storage class
+├── access-all.sh                  # Start all port-forwards
+├── kill-access-all.sh             # Stop all port-forwards
+│
+├── cluster/                       # Cluster/K8s setup and information
+│   ├── docs/                      # Documentation
+│   │   ├── cluster-info-summary.md
+│   │   ├── cluster-quick-reference.md
+│   │   ├── remote-access-guide.md
+│   │   ├── longhorn-setup-guide.md
+│   │   ├── setup-lens.md
+│   │   ├── kubecost-clusterid-fix.md
+│   │   ├── kubecost-grafana-fix.md
+│   │   ├── kubecost-grafana-no-data-fix.md
+│   │   ├── kubecost-grafana-prometheus-troubleshooting.md
+│   │   └── add-node-guide.md
+│   ├── k8s/                       # Kubernetes YAML files
+│   │   ├── local-path-storageclass.yaml
+│   │   └── hostpath-storageclass.yaml
+│   ├── scripts/                   # Shell scripts
+│   │   ├── access-rancher.sh
+│   │   ├── access-longhorn.sh
+│   │   ├── access-kubecost.sh
+│   │   ├── setup-remote-laptop.sh
+│   │   ├── gather-cluster-info.sh
+│   │   ├── check-cluster-access.sh
+│   │   ├── monitor-cluster-recovery.sh
+│   │   ├── quick-recovery-check.sh
+│   │   ├── debug-longhorn-volumes.sh
+│   │   └── test-access-all.sh
+│   └── status/                    # Status and todo files
+│
+├── kafka/                         # Kafka cluster deployment and setup
+│   ├── docs/                      # Documentation
+│   │   ├── kafka-setup-guide.md
+│   │   ├── kafka-ui-setup-guide.md
+│   │   └── strimzi-local-path-workaround.md
+│   ├── k8s/                       # Kubernetes YAML files
+│   │   ├── kafka-kraft-cluster.yaml
+│   │   ├── kafka-ui-deployment.yaml
+│   │   └── kafka-ui-values.yaml
+│   ├── scripts/                   # Shell scripts
+│   │   ├── access-kafka.sh
+│   │   ├── access-kafka-ui.sh
+│   │   └── create-strimzi-pvcs.sh
+│   └── status/                    # Status and todo files
+│
+└── iot/                           # IoT cluster setup and deployment
+    ├── docs/                      # Documentation
+    │   ├── iot-setup-guide.md
+    │   ├── iot-protocol-analysis.md
+    │   └── iot-testing-guide.md
+    ├── k8s/                       # Kubernetes YAML files
+    │   ├── iot-namespace.yaml
+    │   ├── thingsboard-deployment.yaml
+    │   ├── thingsboard-values.yaml
+    │   ├── mosquitto-deployment.yaml
+    │   ├── mosquitto-values.yaml
+    │   ├── nodered-deployment.yaml
+    │   ├── hono-values.yaml
+    │   ├── ditto-values.yaml
+    │   ├── mongodb-ditto-values.yaml
+    │   ├── mongodb-hono-values.yaml
+    │   ├── postgresql-thingsboard-values.yaml
+    │   ├── timescaledb-values.yaml
+    │   └── ditto-mongodb-service.yaml
+    ├── scripts/                   # Shell scripts
+    │   ├── deploy-iot-stack.sh
+    │   ├── uninstall-iot-stack.sh
+    │   ├── access-mosquitto.sh
+    │   ├── access-hono.sh
+    │   ├── access-ditto.sh
+    │   ├── access-thingsboard.sh
+    │   ├── access-nodered.sh
+    │   ├── iot-status-check.sh
+    │   ├── test-iot-stack.sh
+    │   ├── test-iot-end-to-end.sh
+    │   ├── scan-iot-devices.sh
+    │   └── detect-iot-protocols.sh
+    └── status/                     # Status and todo files
+        └── iot-device-scan-results/
 ```
 
 ## 🔐 Security Notes

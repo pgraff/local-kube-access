@@ -85,11 +85,11 @@ main() {
     
     # Node-RED
     print_status "Removing Node-RED..."
-    kubectl delete -f nodered-deployment.yaml -n "$NAMESPACE" 2>/dev/null || print_warning "Node-RED deployment not found"
+    kubectl delete -f ../k8s/nodered-deployment.yaml -n "$NAMESPACE" 2>/dev/null || print_warning "Node-RED deployment not found"
     
     # ThingsBoard
     print_status "Removing ThingsBoard..."
-    kubectl delete -f thingsboard-deployment.yaml -n "$NAMESPACE" 2>/dev/null || print_warning "ThingsBoard deployment not found"
+    kubectl delete -f ../k8s/thingsboard-deployment.yaml -n "$NAMESPACE" 2>/dev/null || print_warning "ThingsBoard deployment not found"
     
     # Ditto
     uninstall_helm_release "ditto"
@@ -102,7 +102,7 @@ main() {
     
     # Mosquitto
     print_status "Removing Mosquitto..."
-    kubectl delete -f mosquitto-deployment.yaml -n "$NAMESPACE" 2>/dev/null || print_warning "Mosquitto deployment not found"
+    kubectl delete -f ../k8s/mosquitto-deployment.yaml -n "$NAMESPACE" 2>/dev/null || print_warning "Mosquitto deployment not found"
     echo ""
     
     # Phase 2: Uninstall Databases

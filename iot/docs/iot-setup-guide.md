@@ -40,7 +40,7 @@ Home Devices → Mosquitto → Hono → Kafka → TimescaleDB
 
 ```bash
 # Deploy the complete IoT stack
-./deploy-iot-stack.sh
+./scripts/deploy-iot-stack.sh
 ```
 
 This script will:
@@ -54,7 +54,7 @@ This script will:
 
 ```bash
 # Remove the complete IoT stack
-./uninstall-iot-stack.sh
+./scripts/uninstall-iot-stack.sh
 ```
 
 ## Manual Deployment Steps
@@ -64,7 +64,7 @@ If you prefer to deploy components individually:
 ### 1. Create Namespace
 
 ```bash
-kubectl apply -f iot-namespace.yaml
+kubectl apply -f k8s/iot-namespace.yaml
 ```
 
 ### 2. Add Helm Repositories
@@ -84,19 +84,19 @@ helm repo update
 ```bash
 # TimescaleDB
 helm install timescaledb timescale/timescaledb-single \
-  -n iot -f timescaledb-values.yaml --wait
+  -n iot -f k8s/timescaledb-values.yaml --wait
 
 # MongoDB for Hono
 helm install mongodb-hono bitnami/mongodb \
-  -n iot -f mongodb-hono-values.yaml --wait
+  -n iot -f k8s/mongodb-hono-values.yaml --wait
 
 # MongoDB for Ditto
 helm install mongodb-ditto bitnami/mongodb \
-  -n iot -f mongodb-ditto-values.yaml --wait
+  -n iot -f k8s/mongodb-ditto-values.yaml --wait
 
 # PostgreSQL for ThingsBoard
 helm install postgresql-thingsboard bitnami/postgresql \
-  -n iot -f postgresql-thingsboard-values.yaml --wait
+  -n iot -f k8s/postgresql-thingsboard-values.yaml --wait
 ```
 
 ### 4. Deploy IoT Components
@@ -104,22 +104,22 @@ helm install postgresql-thingsboard bitnami/postgresql \
 ```bash
 # Mosquitto
 helm install mosquitto cloudnesil/eclipse-mosquitto-mqtt-broker-helm-chart \
-  -n iot -f mosquitto-values.yaml --wait
+  -n iot -f k8s/mosquitto-values.yaml --wait
 
 # Hono
 helm install hono eclipse-iot/hono \
-  -n iot -f hono-values.yaml --wait
+  -n iot -f k8s/hono-values.yaml --wait
 
 # Ditto
 helm install ditto atnog/ditto-helm-chart \
-  -n iot -f ditto-values.yaml --wait
+  -n iot -f k8s/ditto-values.yaml --wait
 
 # ThingsBoard
 helm install thingsboard thingsboard/thingsboard \
-  -n iot -f thingsboard-values.yaml --wait
+  -n iot -f k8s/thingsboard-values.yaml --wait
 
 # Node-RED
-kubectl apply -f nodered-deployment.yaml -n iot
+kubectl apply -f k8s/nodered-deployment.yaml -n iot
 ```
 
 ## Configuration
@@ -157,11 +157,11 @@ All persistent volumes use Longhorn storage class:
 Individual service access:
 
 ```bash
-./access-mosquitto.sh    # MQTT broker on localhost:1883
-./access-hono.sh         # Hono HTTP adapter on localhost:8082
-./access-ditto.sh        # Ditto API on localhost:8083
-./access-thingsboard.sh  # ThingsBoard on localhost:9091
-./access-nodered.sh      # Node-RED on localhost:1880
+./scripts/access-mosquitto.sh    # MQTT broker on localhost:1883
+./scripts/access-hono.sh         # Hono HTTP adapter on localhost:8082
+./scripts/access-ditto.sh        # Ditto API on localhost:8083
+./scripts/access-thingsboard.sh  # ThingsBoard on localhost:9091
+./scripts/access-nodered.sh      # Node-RED on localhost:1880
 ```
 
 ### Access All Services
@@ -179,7 +179,7 @@ This starts port-forwards for all services including IoT stack.
 - **Purpose**: MQTT broker for device connectivity
 - **Port**: 1883 (MQTT), 9001 (WebSockets)
 - **Configuration**: Configured to bridge messages to Hono
-- **Access**: `./access-mosquitto.sh` then connect to `localhost:1883`
+- **Access**: `./scripts/access-mosquitto.sh` then connect to `localhost:1883`
 
 ### Eclipse Hono
 

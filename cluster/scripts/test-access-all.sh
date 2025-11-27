@@ -10,7 +10,7 @@ echo ""
 # Check if IoT namespace exists
 if ! kubectl get namespace iot &>/dev/null; then
     echo "❌ IoT namespace does not exist"
-    echo "   Run: ./deploy-iot-stack.sh"
+    echo "   Run: ./iot/scripts/deploy-iot-stack.sh"
     exit 1
 fi
 

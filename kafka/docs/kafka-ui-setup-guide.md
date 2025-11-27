@@ -22,7 +22,7 @@ The deployment is already configured and ready to use:
 
 ```bash
 # Apply the deployment
-kubectl apply -f kafka-ui-deployment.yaml
+kubectl apply -f k8s/kafka-ui-deployment.yaml
 
 # Check status
 kubectl get pods -n kafka -l app=kafka-ui
@@ -43,7 +43,7 @@ helm repo update
 # Install Kafka UI
 helm install kafka-ui kafka-ui/kafka-ui \
   --namespace kafka \
-  --values kafka-ui-values.yaml
+  --values k8s/kafka-ui-values.yaml
 ```
 
 ## Configuration
@@ -59,7 +59,7 @@ The deployment is configured to connect to your Kafka cluster:
 
 ### Environment Variables
 
-Key configuration options (in `kafka-ui-deployment.yaml`):
+Key configuration options (in `k8s/kafka-ui-deployment.yaml`):
 
 ```yaml
 KAFKA_CLUSTERS_0_NAME: "kafka-cluster"

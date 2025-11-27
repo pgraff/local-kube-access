@@ -99,7 +99,7 @@ main() {
     if kubectl get namespace "$NAMESPACE" &>/dev/null; then
         print_warning "Namespace $NAMESPACE already exists"
     else
-        kubectl apply -f iot-namespace.yaml
+        kubectl apply -f ../k8s/iot-namespace.yaml
         print_status "Namespace $NAMESPACE created"
     fi
     verify_kafka
@@ -127,7 +127,7 @@ main() {
         print_status "Deploying TimescaleDB..."
         helm install timescaledb timescale/timescaledb-single \
             -n "$NAMESPACE" \
-            -f timescaledb-values.yaml \
+            -f ../k8s/timescaledb-values.yaml \
             --wait --timeout 15m || print_warning "TimescaleDB deployment timed out, but continuing. Check status manually."
         print_status "TimescaleDB deployment initiated"
     fi
@@ -139,7 +139,7 @@ main() {
         print_status "Deploying MongoDB for Hono..."
         helm install mongodb-hono bitnami/mongodb \
             -n "$NAMESPACE" \
-            -f mongodb-hono-values.yaml \
+            -f ../k8s/mongodb-hono-values.yaml \
             --wait --timeout 10m
         print_status "MongoDB for Hono deployed"
     fi
@@ -151,7 +151,7 @@ main() {
         print_status "Deploying MongoDB for Ditto..."
         helm install mongodb-ditto bitnami/mongodb \
             -n "$NAMESPACE" \
-            -f mongodb-ditto-values.yaml \
+            -f ../k8s/mongodb-ditto-values.yaml \
             --wait --timeout 10m
         print_status "MongoDB for Ditto deployed"
     fi
@@ -163,7 +163,7 @@ main() {
         print_status "Deploying PostgreSQL for ThingsBoard..."
         helm install postgresql-thingsboard bitnami/postgresql \
             -n "$NAMESPACE" \
-            -f postgresql-thingsboard-values.yaml \
+            -f ../k8s/postgresql-thingsboard-values.yaml \
             --wait --timeout 10m
         print_status "PostgreSQL for ThingsBoard deployed"
     fi
@@ -177,7 +177,7 @@ main() {
         print_warning "Mosquitto already deployed, skipping..."
     else
         print_status "Deploying Eclipse Mosquitto..."
-        kubectl apply -f mosquitto-deployment.yaml -n "$NAMESPACE"
+        kubectl apply -f ../k8s/mosquitto-deployment.yaml -n "$NAMESPACE"
         kubectl wait --for=condition=ready pod -l app=mosquitto -n "$NAMESPACE" --timeout=300s || true
         print_status "Mosquitto deployed"
     fi
@@ -189,7 +189,7 @@ main() {
         print_status "Deploying Eclipse Hono..."
         helm install hono eclipse-iot/hono \
             -n "$NAMESPACE" \
-            -f hono-values.yaml \
+            -f ../k8s/hono-values.yaml \
             --wait --timeout 15m
         print_status "Hono deployed"
     fi
@@ -205,7 +205,7 @@ main() {
         print_status "Deploying Eclipse Ditto..."
         helm install ditto atnog/ditto \
             -n "$NAMESPACE" \
-            -f ditto-values.yaml \
+            -f ../k8s/ditto-values.yaml \
             --wait --timeout 15m
         print_status "Ditto deployed"
     fi
@@ -219,7 +219,7 @@ main() {
         print_warning "ThingsBoard already deployed, skipping..."
     else
         print_status "Deploying ThingsBoard CE..."
-        kubectl apply -f thingsboard-deployment.yaml -n "$NAMESPACE"
+        kubectl apply -f ../k8s/thingsboard-deployment.yaml -n "$NAMESPACE"
         kubectl wait --for=condition=ready pod -l app=thingsboard -n "$NAMESPACE" --timeout=300s || true
         print_status "ThingsBoard deployed"
     fi
@@ -230,7 +230,7 @@ main() {
     else
         print_status "Deploying Node-RED..."
         # Node-RED may not have an official Helm chart, so we'll use a direct deployment
-        kubectl apply -f nodered-deployment.yaml -n "$NAMESPACE"
+        kubectl apply -f ../k8s/nodered-deployment.yaml -n "$NAMESPACE"
         kubectl wait --for=condition=ready pod -l app=node-red -n "$NAMESPACE" --timeout=300s || true
         print_status "Node-RED deployed"
     fi
@@ -252,11 +252,11 @@ main() {
     kubectl get pods -n "$NAMESPACE"
     echo ""
     print_status "To access services, use the access scripts:"
-    echo "  ./access-mosquitto.sh"
-    echo "  ./access-hono.sh"
-    echo "  ./access-ditto.sh"
-    echo "  ./access-thingsboard.sh"
-    echo "  ./access-nodered.sh"
+    echo "  ./iot/scripts/access-mosquitto.sh"
+    echo "  ./iot/scripts/access-hono.sh"
+    echo "  ./iot/scripts/access-ditto.sh"
+    echo "  ./iot/scripts/access-thingsboard.sh"
+    echo "  ./iot/scripts/access-nodered.sh"
     echo ""
     print_status "Or use ./access-all.sh to start all port-forwards"
     echo ""

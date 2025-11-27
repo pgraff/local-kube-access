@@ -288,7 +288,7 @@ If you get PVC name mismatches:
 
 ## Related Files
 
-- `kafka-kraft-cluster.yaml` - Kafka cluster configuration
-- `local-path-storageclass.yaml` - Local-path provisioner setup
+- `k8s/kafka-kraft-cluster.yaml` - Kafka cluster configuration
+- `../cluster/k8s/local-path-storageclass.yaml` - Local-path provisioner setup
 - `kafka-setup-guide.md` - General Kafka setup guide
 

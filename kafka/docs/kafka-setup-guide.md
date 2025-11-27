@@ -47,7 +47,7 @@ kubectl wait --for=condition=ready pod -l name=strimzi-cluster-operator -n kafka
 
 ```bash
 # Apply the Kafka cluster and node pools
-kubectl apply -f kafka-kraft-cluster.yaml
+kubectl apply -f k8s/kafka-kraft-cluster.yaml
 
 # This creates:
 # - 1 Kafka cluster resource

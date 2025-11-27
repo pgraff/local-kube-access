@@ -32,10 +32,10 @@ kubectl get pods -n $NAMESPACE -o jsonpath='{range .items[*]}{.metadata.name}{"\
 echo ""
 
 echo "📝 To access services:"
-echo "  ./access-mosquitto.sh"
-echo "  ./access-ditto.sh"
-echo "  ./access-nodered.sh"
-echo "  ./access-thingsboard.sh"
+echo "  ./iot/scripts/access-mosquitto.sh"
+echo "  ./iot/scripts/access-ditto.sh"
+echo "  ./iot/scripts/access-nodered.sh"
+echo "  ./iot/scripts/access-thingsboard.sh"
 echo "  ./access-all.sh"
 echo ""
 
