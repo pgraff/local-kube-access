@@ -48,16 +48,20 @@ spec:
             cpu: "2000m"
         livenessProbe:
           httpGet:
-            path: /api/v1/health
+            path: /
             port: 9090
-          initialDelaySeconds: 60
-          periodSeconds: 10
+          initialDelaySeconds: 300
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 5
         readinessProbe:
           httpGet:
-            path: /api/v1/health
+            path: /
             port: 9090
-          initialDelaySeconds: 30
-          periodSeconds: 5
+          initialDelaySeconds: 240
+          periodSeconds: 10
+          timeoutSeconds: 10
+          failureThreshold: 5
         volumeMounts:
         - name: thingsboard-data
           mountPath: /data

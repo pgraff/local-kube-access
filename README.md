@@ -214,6 +214,7 @@ All scripts use your local kubeconfig and work from anywhere (Mac, Linux, etc.):
 **Note:** HTTP services (Rancher, Longhorn, Kubecost, Kafka UI, Hono, Ditto, ThingsBoard, Node-RED) are now accessible via Ingress URLs. Individual port-forward scripts for these services have been removed. See [LAPTOP-SETUP.md](LAPTOP-SETUP.md) for URL-based access setup.
 
 ### Setup Scripts
+- **`cluster/scripts/add-node.sh`** - Automate adding a new node to the cluster (takes current hostname and new hostname)
 - **`cluster/scripts/setup-remote-laptop.sh`** - Automated setup for new machines (installs kubectl, verifies connection)
 - **`cluster/scripts/gather-cluster-info.sh`** - Comprehensive cluster information gathering (run on control plane)
 
@@ -248,6 +249,10 @@ Since all nodes are on Tailscale, you can access the cluster from anywhere:
 1. **Install prerequisites**:
    ```bash
    ./cluster/scripts/setup-remote-laptop.sh
+   
+   # Add a new node to the cluster
+   ./cluster/scripts/add-node.sh <current-hostname> <new-hostname>
+   # Example: ./cluster/scripts/add-node.sh my-server k8s-worker-11
    ```
 
 2. **Or manually**:
