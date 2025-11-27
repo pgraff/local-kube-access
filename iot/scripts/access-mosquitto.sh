@@ -1,5 +1,16 @@
 #!/bin/bash
 # Script to access Eclipse Mosquitto MQTT broker via port-forwarding
+#
+# NOTE: This script is still needed because Mosquitto (port 1883) is a TCP/MQTT service
+# that cannot use HTTP Ingress. This is a security feature - Mosquitto is not exposed
+# via Ingress and requires explicit port-forwarding for access.
+#
+# For other IoT HTTP services, use Ingress URLs:
+#   - Hono:      http://hono.tailc2013b.ts.net
+#   - Ditto:     http://ditto.tailc2013b.ts.net
+#   - ThingsBoard: http://thingsboard.tailc2013b.ts.net
+#   - Node-RED:  http://nodered.tailc2013b.ts.net
+# See LAPTOP-SETUP.md for URL-based access setup.
 
 PORT=1883
 NAMESPACE="iot"

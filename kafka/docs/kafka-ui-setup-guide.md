@@ -91,7 +91,8 @@ KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG: "org.apache.kafka.common.security.
 ### Using the Access Script
 
 ```bash
-./access-kafka-ui.sh
+# Access via Ingress URL (recommended): http://kafka-ui.tailc2013b.ts.net
+# Or use port-forwarding fallback: ./access-all.sh
 # Then open: http://localhost:8081
 # Note: Port 8081 is used (8080 is reserved for Longhorn)
 ```
@@ -292,7 +293,8 @@ If Kafka UI doesn't meet your needs, consider:
 
 ```bash
 # Access Kafka UI
-./access-kafka-ui.sh
+# Access via Ingress URL (recommended): http://kafka-ui.tailc2013b.ts.net
+# Or use port-forwarding fallback: ./access-all.sh
 
 # Check status
 kubectl get pods -n kafka -l app=kafka-ui

@@ -1,5 +1,19 @@
 #!/bin/bash
-# Consolidated script to access all cluster services via port-forwarding
+# Port-forwarding script for TCP services and fallback access
+# 
+# NOTE: Most HTTP services are now accessible via Ingress URLs:
+#   - Longhorn: http://longhorn.tailc2013b.ts.net
+#   - Kubecost: http://kubecost.tailc2013b.ts.net
+#   - Kafka UI: http://kafka-ui.tailc2013b.ts.net
+#   - See LAPTOP-SETUP.md for URL-based access setup
+#
+# This script is still needed for:
+#   - Kafka Bootstrap (port 9092) - TCP service, cannot use HTTP Ingress
+#     (Security: Not exposed via Ingress, requires explicit port-forward)
+#   - Mosquitto MQTT (port 1883) - TCP/MQTT service, cannot use HTTP Ingress
+#     (Security: Not exposed via Ingress, requires explicit port-forward)
+#   - Fallback access if Ingress is unavailable
+#
 # This script starts all port-forwards in the background
 
 KUBECONFIG_FILE="$HOME/.kube/config-rke2-cluster.yaml"
@@ -401,31 +415,51 @@ main() {
     print_status "All port-forwards started!"
     echo ""
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "  Service Access Points:"
+    echo "  Service Access Points (Port-Forwarding):"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo ""
-    echo "  🐄 Rancher:"
-    echo "     HTTP:  http://localhost:8443"
-    echo "     HTTPS: https://localhost:8444 (recommended)"
+    print_warning "NOTE: Most HTTP services are available via Ingress URLs (recommended):"
+    echo "  • Longhorn:      http://longhorn.tailc2013b.ts.net"
+    echo "  • Kubecost:      http://kubecost.tailc2013b.ts.net"
+    echo "  • Kafka UI:      http://kafka-ui.tailc2013b.ts.net"
+    echo "  • Rancher:       https://rancher.tailc2013b.ts.net"
+    echo "  • See LAPTOP-SETUP.md for setup instructions"
     echo ""
-    echo "  🦌 Longhorn:"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "  Port-Forward Access (TCP Services & Fallback):"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    echo "  🐄 Rancher (fallback):"
+    echo "     HTTP:  http://localhost:8443"
+    echo "     HTTPS: https://localhost:8444"
+    echo ""
+    echo "  🦌 Longhorn (fallback):"
     echo "     http://localhost:8080"
     echo ""
-    echo "  💰 Kubecost:"
+    echo "  💰 Kubecost (fallback):"
     echo "     http://localhost:9090"
     echo ""
-    echo "  📊 Kafka UI:"
+    echo "  📊 Kafka UI (fallback):"
     echo "     http://localhost:8081"
     echo ""
-    echo "  📨 Kafka Bootstrap:"
+    echo "  📨 Kafka Bootstrap (TCP - requires port-forward):"
     echo "     localhost:9092"
     echo ""
     echo "  🔌 IoT Stack Services:"
-    echo "     Mosquitto MQTT:    localhost:1883"
-    echo "     Hono HTTP:         http://localhost:8082"
-    echo "     Ditto API:         http://localhost:8083"
-    echo "     ThingsBoard:       http://localhost:9091"
-    echo "     Node-RED:          http://localhost:1880"
+    echo "     Mosquitto MQTT (TCP - requires port-forward):"
+    echo "     localhost:1883"
+    echo ""
+    echo "     Hono HTTP (fallback):"
+    echo "     http://localhost:8082"
+    echo ""
+    echo "     Ditto API (fallback):"
+    echo "     http://localhost:8083"
+    echo ""
+    echo "     ThingsBoard (fallback):"
+    echo "     http://localhost:9091"
+    echo ""
+    echo "     Node-RED (fallback):"
+    echo "     http://localhost:1880"
     echo ""
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo ""

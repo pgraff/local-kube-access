@@ -34,9 +34,13 @@ This repository contains documentation, scripts, and configuration files for man
 
 3. **Access services**:
    ```bash
-   ./cluster/scripts/access-rancher.sh    # Rancher UI
-   ./cluster/scripts/access-longhorn.sh   # Longhorn Storage UI
-   ./cluster/scripts/access-kubecost.sh   # Kubecost Cost Analysis
+   # Setup URL-based access (recommended)
+   sudo ./cluster/scripts/add-hosts-entries.sh
+   # Then access: http://longhorn.tailc2013b.ts.net
+   
+   # Or use port-forwarding for TCP services
+   ./kafka/scripts/access-kafka.sh        # Kafka (TCP)
+   ./iot/scripts/access-mosquitto.sh     # Mosquitto (TCP)
    ```
 
 ## 🖥️ Cluster Overview
@@ -64,72 +68,92 @@ This repository contains documentation, scripts, and configuration files for man
 
 ## 🔗 Accessing Services
 
-### Quick Start - Access All Services
+### URL-Based Access (Recommended)
+
+Access services via friendly URLs using Ingress - no port-forwarding needed!
+
+**📖 First Time Setup:**
+See **[LAPTOP-SETUP.md](LAPTOP-SETUP.md)** for complete instructions on setting up your laptop (Ubuntu/Mac) to access cluster services.
+
+**Quick Setup:**
+1. **Cluster setup (one-time):** `./cluster/scripts/setup-ingress.sh`
+2. **Laptop setup (per machine):** `sudo ./cluster/scripts/add-hosts-entries.sh`
+
+See [LAPTOP-SETUP.md](LAPTOP-SETUP.md) for detailed Ubuntu/Tailscale setup instructions.
+
+**Service URLs:**
+- **Rancher:** https://rancher.tailc2013b.ts.net
+- **Longhorn:** http://longhorn.tailc2013b.ts.net
+- **Kubecost:** http://kubecost.tailc2013b.ts.net
+- **Kafka UI:** http://kafka-ui.tailc2013b.ts.net
+- **Hono:** http://hono.tailc2013b.ts.net (if IoT stack deployed)
+- **Ditto:** http://ditto.tailc2013b.ts.net (if IoT stack deployed)
+- **ThingsBoard:** http://thingsboard.tailc2013b.ts.net (if IoT stack deployed)
+- **Node-RED:** http://nodered.tailc2013b.ts.net (if IoT stack deployed)
+
+**Note:** The `/etc/hosts` setup is a one-time configuration per machine. After that, URLs work immediately without any running processes. See [Ingress Setup Guide](cluster/docs/ingress-setup-guide.md) for details.
+
+### Port-Forwarding Access (TCP Services & Fallback)
+
+Port-forwarding is still needed for **TCP services** that cannot use HTTP Ingress:
+- **Kafka Bootstrap** (port 9092) - TCP protocol
+- **Mosquitto MQTT** (port 1883) - MQTT/TCP protocol
+
+**Security Note:** Keeping these services behind port-forwarding (rather than exposing via Ingress) is actually a security benefit - they're not exposed to the network and require explicit port-forwarding for access, providing better access control.
+
+It can also be used as a fallback if Ingress is unavailable:
 
 ```bash
-# Start all port-forwards at once
+# Start all port-forwards (includes TCP services and HTTP fallback)
 ./access-all.sh
-
-# This will start:
-# - Rancher: http://localhost:8443 (HTTP) or https://localhost:8444 (HTTPS)
-# - Longhorn: http://localhost:8080
-# - Kubecost: http://localhost:9090
-# - Kafka UI: http://localhost:8081
-# - Kafka Bootstrap: localhost:9092
 
 # Stop all port-forwards
 ./kill-access-all.sh
 ```
 
+**Note:** For HTTP services, URL-based access (Ingress) is recommended. See [LAPTOP-SETUP.md](LAPTOP-SETUP.md) for setup.
+
 ### Individual Service Access
 
-### Rancher (Cluster Management UI)
-```bash
-./cluster/scripts/access-rancher.sh
-# Then open: http://localhost:8443
-# Bootstrap password: See [Cluster Info Summary](cluster/docs/cluster-info-summary.md)
-```
+**HTTP Services (via Ingress URLs - Recommended):**
+- **Rancher:** https://rancher.tailc2013b.ts.net
+- **Longhorn:** http://longhorn.tailc2013b.ts.net
+- **Kubecost:** http://kubecost.tailc2013b.ts.net
+- **Kafka UI:** http://kafka-ui.tailc2013b.ts.net
+- **Hono:** http://hono.tailc2013b.ts.net
+- **Ditto:** http://ditto.tailc2013b.ts.net
+- **ThingsBoard:** http://thingsboard.tailc2013b.ts.net
+- **Node-RED:** http://nodered.tailc2013b.ts.net
 
-### Longhorn (Storage Management UI)
-```bash
-./cluster/scripts/access-longhorn.sh
-# Then open: http://localhost:8080
-```
+See [LAPTOP-SETUP.md](LAPTOP-SETUP.md) for setup instructions.
 
-### Kubecost (Cost Analysis UI)
-```bash
-./cluster/scripts/access-kubecost.sh
-# Then open: http://localhost:9090
-# Note: Allow 15-25 minutes for initial metrics collection
-```
+**TCP Services (Port-Forwarding Required):**
 
-### Kafka (Message Broker)
+### Kafka (Message Broker - TCP Service)
 ```bash
 ./kafka/scripts/access-kafka.sh
 # Then connect to: localhost:9092
 # See [Kafka Setup Guide](kafka/docs/kafka-setup-guide.md) for usage examples
 ```
+**Note:** Kafka Bootstrap is a TCP service and cannot use HTTP Ingress. This is a security feature.
 
-### Kafka UI (Kafka Management Dashboard)
+### Mosquitto MQTT (TCP Service)
 ```bash
-./kafka/scripts/access-kafka-ui.sh
-# Then open: http://localhost:8081
-# Features: Topic management, consumer groups, message browser, cluster monitoring
-# See [Kafka UI Setup Guide](kafka/docs/kafka-ui-setup-guide.md) for details
-# Note: Uses port 8081 (8080 is used by Longhorn)
+./iot/scripts/access-mosquitto.sh
+# MQTT broker: localhost:1883
 ```
+**Note:** Mosquitto is a TCP/MQTT service and cannot use HTTP Ingress. This is a security feature.
 
 ### IoT Stack
 ```bash
 # Deploy the complete IoT stack
 ./iot/scripts/deploy-iot-stack.sh
 
-# Access individual services
+# Access TCP service (requires port-forwarding)
 ./iot/scripts/access-mosquitto.sh      # MQTT broker: localhost:1883
-./iot/scripts/access-hono.sh           # Hono HTTP: localhost:8082
-./iot/scripts/access-ditto.sh          # Ditto API: localhost:8083
-./iot/scripts/access-thingsboard.sh    # ThingsBoard: localhost:9091
-./iot/scripts/access-nodered.sh        # Node-RED: localhost:1880
+
+# Access HTTP services (via Ingress URLs after setup)
+# See LAPTOP-SETUP.md for URL-based access
 
 # Uninstall IoT stack
 ./iot/scripts/uninstall-iot-stack.sh
@@ -142,10 +166,14 @@ See [IoT Stack Setup Guide](iot/docs/iot-setup-guide.md) for complete documentat
 
 ## 📚 Documentation
 
+### Getting Started
+- **[LAPTOP-SETUP.md](LAPTOP-SETUP.md)** ⭐ **START HERE** - Complete guide for setting up your Ubuntu/Mac laptop to access cluster services
+
 ### Core Documentation
 - **[Cluster Info Summary](cluster/docs/cluster-info-summary.md)** - Comprehensive cluster information, configuration, and issues
 - **[Quick Reference](cluster/docs/cluster-quick-reference.md)** - Quick commands and common tasks
 - **[Remote Access Guide](cluster/docs/remote-access-guide.md)** - How to access the cluster from anywhere
+- **[Ingress Setup Guide](cluster/docs/ingress-setup-guide.md)** - URL-based access via Ingress (cluster-side configuration)
 
 ### Service-Specific Guides
 - **[Longhorn Setup Guide](cluster/docs/longhorn-setup-guide.md)** - Distributed storage setup and configuration
@@ -169,20 +197,21 @@ See [IoT Stack Setup Guide](iot/docs/iot-setup-guide.md) for complete documentat
 ### Access Scripts
 All scripts use your local kubeconfig and work from anywhere (Mac, Linux, etc.):
 
-- **`access-all.sh`** - Start all port-forwards at once (recommended) - in root
+**URL-Based Access (Recommended):**
+- **`cluster/scripts/setup-ingress.sh`** - Deploy Ingress resources for URL-based access
+- **`cluster/scripts/list-service-urls.sh`** - Display all service URLs (MagicDNS and node IP fallback)
+
+**Port-Forwarding Access (TCP Services & Fallback):**
+- **`access-all.sh`** - Start all port-forwards (TCP services + HTTP fallback) - in root
 - **`kill-access-all.sh`** - Stop all port-forwards (convenience script) - in root
-- **`cluster/scripts/access-rancher.sh`** - Port-forward to Rancher UI (ports 8443/8444)
-- **`cluster/scripts/access-longhorn.sh`** - Port-forward to Longhorn UI (port 8080)
-- **`cluster/scripts/access-kubecost.sh`** - Port-forward to Kubecost UI (port 9090)
-- **`kafka/scripts/access-kafka.sh`** - Port-forward to Kafka bootstrap service (port 9092)
-- **`kafka/scripts/access-kafka-ui.sh`** - Port-forward to Kafka UI dashboard (port 8081)
+- **`kafka/scripts/access-kafka.sh`** - Port-forward to Kafka bootstrap service (port 9092) - TCP service
+- **`iot/scripts/access-mosquitto.sh`** - Port-forward to Mosquitto MQTT broker (port 1883) - TCP service
+
+**IoT Stack Management:**
 - **`iot/scripts/deploy-iot-stack.sh`** - Deploy complete IoT stack (Mosquitto, Hono, Ditto, ThingsBoard, TimescaleDB, Node-RED)
 - **`iot/scripts/uninstall-iot-stack.sh`** - Uninstall complete IoT stack
-- **`iot/scripts/access-mosquitto.sh`** - Port-forward to Mosquitto MQTT broker (port 1883)
-- **`iot/scripts/access-hono.sh`** - Port-forward to Hono HTTP adapter (port 8082)
-- **`iot/scripts/access-ditto.sh`** - Port-forward to Ditto API (port 8083)
-- **`iot/scripts/access-thingsboard.sh`** - Port-forward to ThingsBoard (port 9091)
-- **`iot/scripts/access-nodered.sh`** - Port-forward to Node-RED (port 1880)
+
+**Note:** HTTP services (Rancher, Longhorn, Kubecost, Kafka UI, Hono, Ditto, ThingsBoard, Node-RED) are now accessible via Ingress URLs. Individual port-forward scripts for these services have been removed. See [LAPTOP-SETUP.md](LAPTOP-SETUP.md) for URL-based access setup.
 
 ### Setup Scripts
 - **`cluster/scripts/setup-remote-laptop.sh`** - Automated setup for new machines (installs kubectl, verifies connection)
@@ -199,11 +228,11 @@ chmod +x iot/scripts/*.sh
 # Start all services at once (recommended)
 ./access-all.sh
 
-# Or access individual services
-./cluster/scripts/access-rancher.sh
-./cluster/scripts/access-longhorn.sh
-./cluster/scripts/access-kubecost.sh
-./kafka/scripts/access-kafka-ui.sh
+# Access TCP services individually:
+./kafka/scripts/access-kafka.sh        # Kafka Bootstrap (TCP)
+./iot/scripts/access-mosquitto.sh      # Mosquitto MQTT (TCP)
+
+# HTTP services are accessible via Ingress URLs (see LAPTOP-SETUP.md)
 
 # Stop all port-forwards
 ./kill-access-all.sh
@@ -290,9 +319,9 @@ k8s-home/
 │   │   ├── local-path-storageclass.yaml
 │   │   └── hostpath-storageclass.yaml
 │   ├── scripts/                   # Shell scripts
-│   │   ├── access-rancher.sh
-│   │   ├── access-longhorn.sh
-│   │   ├── access-kubecost.sh
+│   │   ├── setup-ingress.sh
+│   │   ├── add-hosts-entries.sh
+│   │   ├── list-service-urls.sh
 │   │   ├── setup-remote-laptop.sh
 │   │   ├── gather-cluster-info.sh
 │   │   ├── check-cluster-access.sh
@@ -312,8 +341,7 @@ k8s-home/
 │   │   ├── kafka-ui-deployment.yaml
 │   │   └── kafka-ui-values.yaml
 │   ├── scripts/                   # Shell scripts
-│   │   ├── access-kafka.sh
-│   │   ├── access-kafka-ui.sh
+│   │   ├── access-kafka.sh          # TCP service (still needed)
 │   │   └── create-strimzi-pvcs.sh
 │   └── status/                    # Status and todo files
 │
@@ -339,11 +367,8 @@ k8s-home/
     ├── scripts/                   # Shell scripts
     │   ├── deploy-iot-stack.sh
     │   ├── uninstall-iot-stack.sh
-    │   ├── access-mosquitto.sh
-    │   ├── access-hono.sh
-    │   ├── access-ditto.sh
-    │   ├── access-thingsboard.sh
-    │   ├── access-nodered.sh
+    │   ├── access-mosquitto.sh      # TCP service (still needed)
+    │   │                             # HTTP services now use Ingress URLs
     │   ├── iot-status-check.sh
     │   ├── test-iot-stack.sh
     │   ├── test-iot-end-to-end.sh

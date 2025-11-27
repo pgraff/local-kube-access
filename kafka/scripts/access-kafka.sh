@@ -1,5 +1,12 @@
 #!/bin/bash
 # Script to access Kafka cluster via port-forwarding
+#
+# NOTE: This script is still needed because Kafka Bootstrap (port 9092) is a TCP service
+# that cannot use HTTP Ingress. This is a security feature - Kafka is not exposed via
+# Ingress and requires explicit port-forwarding for access.
+#
+# For Kafka UI (HTTP), use: http://kafka-ui.tailc2013b.ts.net
+# See LAPTOP-SETUP.md for URL-based access setup.
 
 PORT=9092
 NAMESPACE="kafka"

@@ -152,27 +152,28 @@ All persistent volumes use Longhorn storage class:
 
 ## Accessing Services
 
-### Port-Forwarding Scripts
+### Access Methods
 
-Individual service access:
+**HTTP Services (via Ingress URLs - Recommended):**
+After setting up `/etc/hosts` (see [LAPTOP-SETUP.md](../../LAPTOP-SETUP.md)):
+- **Hono:** http://hono.tailc2013b.ts.net
+- **Ditto:** http://ditto.tailc2013b.ts.net
+- **ThingsBoard:** http://thingsboard.tailc2013b.ts.net
+- **Node-RED:** http://nodered.tailc2013b.ts.net
 
+**TCP Services (Port-Forwarding Required):**
 ```bash
 cd iot/scripts
-./access-mosquitto.sh    # MQTT broker on localhost:1883
-./access-hono.sh         # Hono HTTP adapter on localhost:8082
-./access-ditto.sh        # Ditto API on localhost:8083
-./access-thingsboard.sh  # ThingsBoard on localhost:9091
-./access-nodered.sh      # Node-RED on localhost:1880
+./access-mosquitto.sh    # MQTT broker on localhost:1883 (TCP service)
 ```
 
-### Access All Services
-
+**Access All Services (Port-Forwarding):**
 ```bash
 # From project root
 ./access-all.sh
 ```
 
-This starts port-forwards for all services including IoT stack.
+This starts port-forwards for TCP services and provides fallback access for HTTP services.
 
 ## Component Details
 
@@ -181,7 +182,7 @@ This starts port-forwards for all services including IoT stack.
 - **Purpose**: MQTT broker for device connectivity
 - **Port**: 1883 (MQTT), 9001 (WebSockets)
 - **Configuration**: Configured to bridge messages to Hono
-- **Access**: `./scripts/access-mosquitto.sh` then connect to `localhost:1883`
+- **Access**: `./scripts/access-mosquitto.sh` then connect to `localhost:1883` (TCP service, requires port-forwarding)
 
 ### Eclipse Hono
 
@@ -191,7 +192,7 @@ This starts port-forwards for all services including IoT stack.
   - MQTT Adapter
   - HTTP Adapter
 - **Kafka Integration**: Publishes telemetry to `hono.telemetry.*` topics
-- **Access**: `cd iot/scripts && ./access-hono.sh` then `http://localhost:8082`
+- **Access**: http://hono.tailc2013b.ts.net (via Ingress) or port-forward fallback
 
 ### Eclipse Ditto
 
@@ -202,7 +203,7 @@ This starts port-forwards for all services including IoT stack.
   - Things API: `/api/2/things`
   - Policies API: `/api/2/policies`
   - Search API: `/api/2/search`
-- **Access**: `cd iot/scripts && ./access-ditto.sh` then `http://localhost:8083/api`
+- **Access**: http://ditto.tailc2013b.ts.net/api (via Ingress) or port-forward fallback
 
 ### ThingsBoard CE
 
@@ -212,7 +213,7 @@ This starts port-forwards for all services including IoT stack.
 - **Default Credentials**:
   - Username: `sysadmin@thingsboard.org`
   - Password: `sysadmin` (change after first login)
-- **Access**: `cd iot/scripts && ./access-thingsboard.sh` then `http://localhost:9091`
+- **Access**: http://thingsboard.tailc2013b.ts.net (via Ingress) or port-forward fallback
 
 ### TimescaleDB
 
@@ -226,7 +227,7 @@ This starts port-forwards for all services including IoT stack.
 - **Purpose**: Visual programming for automation
 - **Storage**: 5Gi for flows and data
 - **Integration**: Connect to ThingsBoard, Ditto, Kafka
-- **Access**: `cd iot/scripts && ./access-nodered.sh` then `http://localhost:1880`
+- **Access**: http://nodered.tailc2013b.ts.net (via Ingress) or port-forward fallback
 
 ## Data Flow Configuration
 

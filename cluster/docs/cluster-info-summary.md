@@ -356,16 +356,29 @@ kubectl get cn
 ## Access Information
 
 - **Control Plane API:** https://100.68.247.112:6443
-- **Rancher UI:** 
-  - Via Ingress: https://rancher.tailc2013b.ts.net
-  - Via Port-Forward: `./access-rancher.sh` then http://localhost:8443 or https://localhost:8444
-- **Longhorn UI:** `./access-longhorn.sh` then http://localhost:8080
-- **Kubecost UI:** `./access-kubecost.sh` then http://localhost:9090
-- **Kafka UI:** `./access-kafka-ui.sh` then http://localhost:8081
-- **Kafka Bootstrap:** `./access-kafka.sh` then localhost:9092
-- **All Services:** `./access-all.sh` to start all port-forwards
 - **SSH Access:** scispike@k8s-cp-01
 - **kubectl:** Available at ~/kubectl on control plane node
+
+### Service Access (URL-Based via Ingress - Recommended)
+
+**Core Services (via Ingress URLs):**
+- **Rancher:** https://rancher.tailc2013b.ts.net
+- **Longhorn:** http://longhorn.tailc2013b.ts.net
+- **Kubecost:** http://kubecost.tailc2013b.ts.net
+- **Kafka UI:** http://kafka-ui.tailc2013b.ts.net
+
+**IoT Stack Services (if deployed, via Ingress URLs):**
+- **Hono:** http://hono.tailc2013b.ts.net
+- **Ditto:** http://ditto.tailc2013b.ts.net
+- **ThingsBoard:** http://thingsboard.tailc2013b.ts.net
+- **Node-RED:** http://nodered.tailc2013b.ts.net
+
+**Setup:**
+- Deploy ingress resources: `./cluster/scripts/setup-ingress.sh`
+- List all URLs: `./cluster/scripts/list-service-urls.sh`
+- See [Ingress Setup Guide](ingress-setup-guide.md) for detailed setup and troubleshooting
+
+**Note:** Kafka Bootstrap (port 9092) and Mosquitto (port 1883) are TCP services and require port-forwarding: `./kafka/scripts/access-kafka.sh` and `./iot/scripts/access-mosquitto.sh`. These services are not exposed via Ingress for security reasons.
 
 ## Cluster Health Summary
 
