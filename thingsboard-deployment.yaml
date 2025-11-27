@@ -4,24 +4,14 @@ metadata:
   name: thingsboard-config
   namespace: iot
 data:
-  conf: |
-    # ThingsBoard Configuration
-    # Database
-    SPRING_DATASOURCE_URL=jdbc:postgresql://postgresql-thingsboard.iot.svc.cluster.local:5432/thingsboard
-    SPRING_DATASOURCE_USERNAME=thingsboard
-    SPRING_DATASOURCE_PASSWORD=thingsboard-password
-    
-    # Kafka
-    TB_KAFKA_ENABLED=true
-    TB_QUEUE_TYPE=kafka
-    TB_KAFKA_BOOTSTRAP_SERVERS=kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092
-    TB_KAFKA_TOPIC_PREFIX=thingsboard
-    
-    # Cache (in-memory for now)
-    TB_CACHE_TYPE=memory
-    
-    # Logging
-    LOG_LEVEL=INFO
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://postgresql-thingsboard.iot.svc.cluster.local:5432/thingsboard"
+  SPRING_DATASOURCE_USERNAME: "thingsboard"
+  SPRING_DATASOURCE_PASSWORD: "thingsboard-password"
+  SPRING_DATASOURCE_DRIVER_CLASS_NAME: "org.postgresql.Driver"
+  SPRING_JPA_DATABASE_PLATFORM: "org.hibernate.dialect.PostgreSQLDialect"
+  TB_QUEUE_TYPE: "in-memory"
+  TB_CACHE_TYPE: "memory"
+  LOG_LEVEL: "INFO"
 ---
 apiVersion: apps/v1
 kind: Deployment

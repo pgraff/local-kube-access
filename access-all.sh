@@ -361,23 +361,33 @@ main() {
         # Mosquitto - direct service name
         (start_port_forward "mosquitto" "iot" "mosquitto" 1883 1883 2>/dev/null) || true
         
-        # Hono - use dynamic discovery like access-hono.sh
-        HONO_SERVICE=$(kubectl get svc -n iot -l app=hono,component=http-adapter -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || \
-                      kubectl get svc -n iot -l app.kubernetes.io/name=hono -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || \
-                      kubectl get svc -n iot 2>/dev/null | grep -i hono | grep -i http | head -1 | awk '{print $1}' || \
-                      kubectl get svc -n iot 2>/dev/null | grep -i hono | grep -i adapter | head -1 | awk '{print $1}' || \
-                      echo "")
-        if [ -n "$HONO_SERVICE" ]; then
-            (start_port_forward "hono" "iot" "$HONO_SERVICE" 8082 8080 2>/dev/null) || true
+        # Hono - use direct service name (hono-adapter-http) with correct port (8443)
+        if kubectl get svc -n iot hono-adapter-http &>/dev/null; then
+            (start_port_forward "hono" "iot" "hono-adapter-http" 8082 8443 2>/dev/null) || true
+        else
+            # Fallback to discovery
+            HONO_SERVICE=$(kubectl get svc -n iot -l app=hono,component=http-adapter -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || \
+                          kubectl get svc -n iot 2>/dev/null | grep -i hono | grep -i "http" | head -1 | awk '{print $1}' || \
+                          echo "")
+            if [ -n "$HONO_SERVICE" ]; then
+                # Check if service uses port 8443 or 8080
+                HONO_PORT=$(kubectl get svc -n iot "$HONO_SERVICE" -o jsonpath='{.spec.ports[0].port}' 2>/dev/null || echo "8443")
+                (start_port_forward "hono" "iot" "$HONO_SERVICE" 8082 "$HONO_PORT" 2>/dev/null) || true
+            fi
         fi
         
-        # Ditto - use dynamic discovery like access-ditto.sh
-        DITTO_SERVICE=$(kubectl get svc -n iot -o name 2>/dev/null | grep -i ditto | grep -i gateway | head -1 | sed 's|service/||' || \
-                        kubectl get svc -n iot 2>/dev/null | grep -i ditto | grep -i gateway | head -1 | awk '{print $1}' || \
-                        kubectl get svc -n iot 2>/dev/null | grep -i ditto | head -1 | awk '{print $1}' || \
-                        echo "ditto-nginx")
-        if [ -n "$DITTO_SERVICE" ]; then
-            (start_port_forward "ditto" "iot" "$DITTO_SERVICE" 8083 8080 2>/dev/null) || true
+        # Ditto - use ditto-nginx service (main gateway) with port 8080
+        if kubectl get svc -n iot ditto-nginx &>/dev/null; then
+            (start_port_forward "ditto" "iot" "ditto-nginx" 8083 8080 2>/dev/null) || true
+        else
+            # Fallback to discovery
+            DITTO_SERVICE=$(kubectl get svc -n iot -o name 2>/dev/null | grep -i ditto | grep -i nginx | head -1 | sed 's|service/||' || \
+                            kubectl get svc -n iot 2>/dev/null | grep -i ditto | grep -i nginx | head -1 | awk '{print $1}' || \
+                            kubectl get svc -n iot 2>/dev/null | grep -i ditto | head -1 | awk '{print $1}' || \
+                            echo "")
+            if [ -n "$DITTO_SERVICE" ]; then
+                (start_port_forward "ditto" "iot" "$DITTO_SERVICE" 8083 8080 2>/dev/null) || true
+            fi
         fi
         
         # ThingsBoard - direct service name
