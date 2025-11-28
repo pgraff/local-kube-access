@@ -16,7 +16,7 @@ kubectl get pods -n $NAMESPACE -o wide | head -20
 echo ""
 
 echo "🔧 Services:"
-kubectl get svc -n $NAMESPACE | grep -E "mosquitto|ditto|hono|node-red|thingsboard|timescaledb|postgresql|mongodb"
+kubectl get svc -n $NAMESPACE | grep -E "mosquitto|hono|node-red|thingsboard|postgresql|mongodb"
 echo ""
 
 echo "💾 Storage:"
@@ -32,10 +32,11 @@ kubectl get pods -n $NAMESPACE -o jsonpath='{range .items[*]}{.metadata.name}{"\
 echo ""
 
 echo "📝 To access services:"
-echo "  ./iot/scripts/access-mosquitto.sh"
-echo "  ./iot/scripts/access-ditto.sh"
-echo "  ./iot/scripts/access-nodered.sh"
-echo "  ./iot/scripts/access-thingsboard.sh"
-echo "  ./access-all.sh"
+echo "  Primary (Tailscale URLs):"
+echo "    http://thingsboard.tailc2013b.ts.net"
+echo "    http://nodered.tailc2013b.ts.net"
+echo "  Fallback (port-forward):"
+echo "    ./access-all.sh"
+echo "    ./iot/scripts/access-mosquitto.sh"
 echo ""
 

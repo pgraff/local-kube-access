@@ -42,34 +42,35 @@ mosquitto_sub -h localhost -p 1883 -t test/topic &
 mosquitto_pub -h localhost -p 1883 -t test/topic -m "Hello from local machine"
 ```
 
-### 2. Test Eclipse Ditto API
+### 2. Test ThingsBoard API
 
-**Test Ditto Gateway:**
+**Test ThingsBoard:**
 ```bash
-# Test API endpoint (should return 401 - auth required, but service is up)
-kubectl run ditto-test --rm -i --restart=Never \
+# Test API endpoint (should return 200 or 302 - service is up)
+kubectl run thingsboard-test --rm -i --restart=Never \
   --image=curlimages/curl:latest -n iot \
-  -- curl -v http://ditto-gateway.iot.svc.cluster.local:8080/api/2/things
+  -- curl -v http://thingsboard.iot.svc.cluster.local:9090
 ```
 
 **From local machine:**
 ```bash
-# Start port-forward
-cd iot/scripts
-./access-ditto.sh &
-# Or: kubectl port-forward -n iot svc/ditto-nginx 8083:8080 &
+# Primary access (Tailscale URL - recommended):
+curl http://thingsboard.tailc2013b.ts.net
 
-# Test API
-curl http://localhost:8083/api/2/things
-# Should return 401 (authentication required) or empty array if auth disabled
+# Fallback (port-forward):
+kubectl port-forward -n iot svc/thingsboard 9090:9090 &
+curl http://localhost:9090
 ```
 
-**Test Ditto UI:**
+**Test ThingsBoard UI:**
 ```bash
-# Access via port-forward
-cd iot/scripts
-./access-ditto.sh
-# Then open: http://localhost:8083
+# Access via Tailscale URL (recommended):
+# http://thingsboard.tailc2013b.ts.net
+# Login: sysadmin@thingsboard.org / sysadmin
+
+# Or via port-forward:
+kubectl port-forward -n iot svc/thingsboard 9090:9090
+# Then open: http://localhost:9090
 ```
 
 ### 3. Test Eclipse Hono
@@ -142,14 +143,6 @@ kubectl run kafka-list --rm -i --restart=Never \
 
 ### 5. Test Database Connectivity
 
-**TimescaleDB:**
-```bash
-kubectl run timescaledb-test --rm -i --restart=Never \
-  --image=postgres:15 -n iot \
-  -- psql -h timescaledb.iot.svc.cluster.local -U timescaledb -d timescaledb \
-  -c "SELECT version();"
-```
-
 **PostgreSQL (ThingsBoard):**
 ```bash
 kubectl run postgresql-test --rm -i --restart=Never \
@@ -158,17 +151,17 @@ kubectl run postgresql-test --rm -i --restart=Never \
   -c "SELECT version();"
 ```
 
-**MongoDB (Ditto):**
+**MongoDB (Hono):**
 ```bash
 kubectl run mongodb-test --rm -i --restart=Never \
   --image=mongo:7 -n iot \
-  -- mongosh mongodb://mongodb-ditto.iot.svc.cluster.local:27017/ditto \
+  -- mongosh mongodb://mongodb-hono.iot.svc.cluster.local:27017/hono \
   --eval "db.adminCommand('ping')"
 ```
 
 ### 6. End-to-End Data Flow Test
 
-**Complete Pipeline: Device → Mosquitto → Hono → Kafka → Ditto**
+**Complete Pipeline: Device → Mosquitto → Hono → Kafka → ThingsBoard**
 
 1. **Publish telemetry via MQTT to Mosquitto:**
 ```bash
@@ -187,9 +180,9 @@ kubectl run kafka-check --rm -i --restart=Never \
   --topic hono.telemetry.* --from-beginning --max-messages 1
 ```
 
-3. **Check Ditto for digital twin updates:**
+3. **Check ThingsBoard for device state:**
 ```bash
-# Via Ditto API (if authentication is configured)
+# Via ThingsBoard API (see thingsboard-as-digital-twin.md)
 curl http://localhost:8083/api/2/things
 ```
 
@@ -241,12 +234,6 @@ cd iot/scripts
 2. Publish message to Mosquitto with Hono topic format
 3. Verify message appears in Kafka topics
 
-**Test Kafka → Ditto Flow:**
-
-1. Publish message to Kafka topic that Ditto consumes
-2. Check Ditto API for digital twin updates
-3. Verify Ditto connectivity service logs
-
 **Test Kafka → ThingsBoard Flow:**
 
 1. Configure ThingsBoard to consume from Kafka
@@ -257,7 +244,7 @@ cd iot/scripts
 
 - [ ] All pods are running
 - [ ] Mosquitto accepts MQTT connections
-- [ ] Ditto API responds
+- [ ] ThingsBoard API responds
 - [ ] Hono Device Registry is accessible
 - [ ] Kafka is accessible from IoT namespace
 - [ ] Databases are accessible
@@ -273,10 +260,11 @@ cd iot/scripts
 - Verify service: `kubectl get svc -n iot mosquitto`
 - Check network policies
 
-### Ditto API returns errors
-- Check Ditto gateway logs: `kubectl logs -n iot -l app=ditto-gateway`
-- Verify MongoDB connection: `kubectl logs -n iot -l app=ditto-connectivity`
-- Check service: `kubectl get svc -n iot ditto-nginx`
+### ThingsBoard API returns errors
+- Check ThingsBoard logs: `kubectl logs -n iot -l app=thingsboard --tail=50`
+- Verify PostgreSQL connection: `kubectl logs -n iot -l app=thingsboard | grep -i postgres`
+- Check service: `kubectl get svc -n iot thingsboard`
+- Check Kafka connectivity: `kubectl logs -n iot -l app=thingsboard | grep -i kafka`
 
 ### Hono adapters not working
 - Check adapter logs: `kubectl logs -n iot -l app=hono-adapter-mqtt`
@@ -289,7 +277,7 @@ cd iot/scripts
 - Verify service DNS resolution
 
 ### Database connection issues
-- Check pod status: `kubectl get pods -n iot | grep -E "timescaledb|postgresql|mongodb"`
+- Check pod status: `kubectl get pods -n iot | grep -E "postgresql|mongodb"`
 - Check service endpoints: `kubectl get endpoints -n iot`
 - Verify credentials in values files
 

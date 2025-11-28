@@ -9,7 +9,9 @@ data:
   SPRING_DATASOURCE_PASSWORD: "thingsboard-password"
   SPRING_DATASOURCE_DRIVER_CLASS_NAME: "org.postgresql.Driver"
   SPRING_JPA_DATABASE_PLATFORM: "org.hibernate.dialect.PostgreSQLDialect"
-  TB_QUEUE_TYPE: "in-memory"
+  TB_QUEUE_TYPE: "kafka"
+  TB_KAFKA_SERVERS: "kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092"
+  TB_KAFKA_TOPIC_PREFIX: "tb"
   TB_CACHE_TYPE: "memory"
   LOG_LEVEL: "INFO"
 ---

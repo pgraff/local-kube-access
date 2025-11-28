@@ -390,21 +390,8 @@ main() {
             fi
         fi
         
-        # Ditto - use ditto-nginx service (main gateway) with port 8080
-        if kubectl get svc -n iot ditto-nginx &>/dev/null; then
-            (start_port_forward "ditto" "iot" "ditto-nginx" 8083 8080 2>/dev/null) || true
-        else
-            # Fallback to discovery
-            DITTO_SERVICE=$(kubectl get svc -n iot -o name 2>/dev/null | grep -i ditto | grep -i nginx | head -1 | sed 's|service/||' || \
-                            kubectl get svc -n iot 2>/dev/null | grep -i ditto | grep -i nginx | head -1 | awk '{print $1}' || \
-                            kubectl get svc -n iot 2>/dev/null | grep -i ditto | head -1 | awk '{print $1}' || \
-                            echo "")
-            if [ -n "$DITTO_SERVICE" ]; then
-                (start_port_forward "ditto" "iot" "$DITTO_SERVICE" 8083 8080 2>/dev/null) || true
-            fi
-        fi
-        
-        # ThingsBoard - direct service name
+        # ThingsBoard - direct service name (fallback - use Tailscale URL if available)
+        # Primary access: http://thingsboard.tailc2013b.ts.net (via /etc/hosts)
         (start_port_forward "thingsboard" "iot" "thingsboard" 9091 9090 2>/dev/null) || true
         
         # Node-RED - direct service name
@@ -423,6 +410,8 @@ main() {
     echo "  • Kubecost:      http://kubecost.tailc2013b.ts.net"
     echo "  • Kafka UI:      http://kafka-ui.tailc2013b.ts.net"
     echo "  • Rancher:       https://rancher.tailc2013b.ts.net"
+    echo "  • ThingsBoard:   http://thingsboard.tailc2013b.ts.net"
+    echo "  • Node-RED:      http://nodered.tailc2013b.ts.net"
     echo "  • See LAPTOP-SETUP.md for setup instructions"
     echo ""
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -452,11 +441,9 @@ main() {
     echo "     Hono HTTP (fallback):"
     echo "     http://localhost:8082"
     echo ""
-    echo "     Ditto API (fallback):"
-    echo "     http://localhost:8083"
-    echo ""
-    echo "     ThingsBoard (fallback):"
+    echo "     ThingsBoard (fallback - use Tailscale URL if available):"
     echo "     http://localhost:9091"
+    echo "     Primary: http://thingsboard.tailc2013b.ts.net"
     echo ""
     echo "     Node-RED (fallback):"
     echo "     http://localhost:1880"

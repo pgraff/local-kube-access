@@ -7,11 +7,9 @@ This guide covers the deployment and configuration of a complete IoT platform st
 ## Architecture
 
 ```
-Home Devices → Mosquitto → Hono → Kafka → TimescaleDB
+Home Devices → Mosquitto → Hono → Kafka → ThingsBoard CE (PostgreSQL)
                                     │
-                                    ├──> Ditto (Digital Twins) → APIs
-                                    │
-                                    └──> ThingsBoard CE → Node-RED
+                                    └──> Node-RED
 ```
 
 ### Component Flow
@@ -19,10 +17,8 @@ Home Devices → Mosquitto → Hono → Kafka → TimescaleDB
 1. **Eclipse Mosquitto** - MQTT broker receives messages from IoT devices
 2. **Eclipse Hono** - Device connectivity gateway that processes MQTT messages and forwards to Kafka
 3. **Apache Kafka** - Message broker (already deployed in `kafka` namespace)
-4. **TimescaleDB** - Time-series database for telemetry storage
-5. **Eclipse Ditto** - Digital twins platform consuming from Kafka
-6. **ThingsBoard CE** - Dashboards, rules, and device management
-7. **Node-RED** - Visual programming for automation
+4. **ThingsBoard CE** - Dashboards, rules, device management, and digital twin functionality (stores telemetry in PostgreSQL)
+5. **Node-RED** - Visual programming for automation
 
 ## Prerequisites
 
@@ -47,9 +43,11 @@ cd iot/scripts
 This script will:
 1. Create the `iot` namespace
 2. Add all required Helm repositories
-3. Deploy all databases (TimescaleDB, MongoDB, PostgreSQL)
-4. Deploy all IoT components (Mosquitto, Hono, Ditto, ThingsBoard, Node-RED)
+3. Deploy all databases (MongoDB for Hono, PostgreSQL for ThingsBoard)
+4. Deploy all IoT components (Mosquitto, Hono, ThingsBoard, Node-RED)
 5. Configure integrations
+
+**Note:** ThingsBoard handles digital twin functionality - no separate twin service needed!
 
 ### Uninstall Everything
 
@@ -84,10 +82,6 @@ helm repo update
 ### 3. Deploy Databases
 
 ```bash
-# TimescaleDB
-helm install timescaledb timescale/timescaledb-single \
-  -n iot -f iot/k8s/timescaledb-values.yaml --wait
-
 # MongoDB for Hono
 helm install mongodb-hono bitnami/mongodb \
   -n iot -f iot/k8s/mongodb-hono-values.yaml --wait
@@ -111,11 +105,8 @@ kubectl apply -f iot/k8s/mosquitto-deployment.yaml -n iot
 helm install hono eclipse-iot/hono \
   -n iot -f iot/k8s/hono-values.yaml --wait
 
-# Ditto
-helm install ditto atnog/ditto-helm-chart \
-  -n iot -f iot/k8s/ditto-values.yaml --wait
-
 # ThingsBoard (direct YAML deployment)
+# Note: ThingsBoard handles digital twin functionality via device attributes
 kubectl apply -f iot/k8s/thingsboard-deployment.yaml -n iot
 
 # Node-RED
@@ -215,12 +206,13 @@ This starts port-forwards for TCP services and provides fallback access for HTTP
   - Password: `sysadmin` (change after first login)
 - **Access**: http://thingsboard.tailc2013b.ts.net (via Ingress) or port-forward fallback
 
-### TimescaleDB
+### PostgreSQL (ThingsBoard)
 
-- **Purpose**: Time-series database for telemetry storage
-- **Storage**: 100Gi on Longhorn
-- **Connection**: `timescaledb.iot.svc.cluster.local:5432`
-- **Credentials**: See `timescaledb-values.yaml`
+- **Purpose**: Database for ThingsBoard (stores telemetry and device data)
+- **Storage**: 8Gi on Longhorn
+- **Connection**: `postgresql-thingsboard.iot.svc.cluster.local:5432`
+- **Credentials**: See `postgresql-thingsboard-values.yaml`
+- **Note**: TimescaleDB extension can be added later if time-series optimizations are needed (see `iot/scripts/add-timescaledb-extension.sh`)
 
 ### Node-RED
 
@@ -241,21 +233,13 @@ Hono automatically publishes device telemetry to Kafka topics:
 - Telemetry: `hono.telemetry.<tenant>.<device-id>`
 - Events: `hono.event.<tenant>.<device-id>`
 
-### Kafka → TimescaleDB
-
-Set up a Kafka consumer to ingest telemetry into TimescaleDB. You can use:
-- Kafka Connect with TimescaleDB connector
-- Custom consumer application
-- ThingsBoard's built-in integration
-
-### Kafka → Ditto
-
-Ditto consumes from Kafka topics configured in `ditto-values.yaml`:
-- Things: `ditto.things`
-- Policies: `ditto.policies`
-- Search: `ditto.search`
-
 ### Kafka → ThingsBoard
+
+ThingsBoard can consume from Kafka or receive telemetry via HTTP/MQTT:
+- Kafka topics: `tb-core`, `tb.rule-engine` (internal)
+- Telemetry: Via HTTP API or MQTT integration
+- Storage: PostgreSQL (device state + telemetry)
+- Digital Twins: Device attributes (reported/desired state)
 
 ThingsBoard consumes telemetry from Kafka topics configured in `thingsboard-values.yaml`.
 

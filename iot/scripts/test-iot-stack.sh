@@ -82,30 +82,18 @@ test_mosquitto() {
     return $failed
 }
 
-# Test 3: Ditto API
-test_ditto() {
-    print_test "Testing Ditto API..."
+# Test 3: ThingsBoard API (replaces Ditto)
+test_thingsboard() {
+    print_test "Testing ThingsBoard API..."
     local failed=0
     
-    # Test Ditto Gateway
-    local status=$(kubectl run ditto-test-$(date +%s) --rm -i --restart=Never --image=curlimages/curl:latest -n $NAMESPACE -- \
-        curl -s -o /dev/null -w "%{http_code}" http://ditto-gateway.iot.svc.cluster.local:8080/api/2/things 2>&1 | tail -1)
-    
-    if [ "$status" = "401" ] || [ "$status" = "200" ]; then
-        print_success "Ditto Gateway responding (HTTP $status)"
+    # Test ThingsBoard health endpoint
+    local status=$(kubectl run thingsboard-test-$(date +%s) --rm -i --restart=Never --image=curlimages/curl:latest -n $NAMESPACE -- \
+        curl -s -o /dev/null -w "%{http_code}" http://thingsboard.iot.svc.cluster.local:9090 2>&1 | tail -1)
+    if [ "$status" = "200" ] || [ "$status" = "302" ]; then
+        print_success "ThingsBoard responding (HTTP $status)"
     else
-        print_error "Ditto Gateway not responding (HTTP $status)"
-        failed=1
-    fi
-    
-    # Test Ditto Nginx
-    local nginx_status=$(kubectl run ditto-nginx-test-$(date +%s) --rm -i --restart=Never --image=curlimages/curl:latest -n $NAMESPACE -- \
-        curl -s -o /dev/null -w "%{http_code}" http://ditto-nginx.iot.svc.cluster.local:8080/api/2/things 2>&1 | tail -1)
-    
-    if [ "$nginx_status" = "401" ] || [ "$nginx_status" = "200" ]; then
-        print_success "Ditto Nginx responding (HTTP $nginx_status)"
-    else
-        print_warning "Ditto Nginx test inconclusive"
+        print_warning "ThingsBoard test inconclusive (HTTP $status)"
     fi
     
     return $failed
@@ -157,25 +145,18 @@ test_databases() {
     print_test "Testing database connectivity..."
     local failed=0
     
-    # TimescaleDB
-    if kubectl get svc -n $NAMESPACE timescaledb &>/dev/null; then
-        print_success "TimescaleDB service exists"
-    else
-        print_warning "TimescaleDB service not found"
-    fi
-    
-    # PostgreSQL
+    # PostgreSQL (for ThingsBoard)
     if kubectl get svc -n $NAMESPACE postgresql-thingsboard &>/dev/null; then
         print_success "PostgreSQL service exists"
     else
         print_warning "PostgreSQL service not found"
     fi
     
-    # MongoDB
-    if kubectl get svc -n $NAMESPACE mongodb-ditto &>/dev/null; then
-        print_success "MongoDB (Ditto) service exists"
+    # MongoDB (for Hono)
+    if kubectl get svc -n $NAMESPACE mongodb-hono &>/dev/null; then
+        print_success "MongoDB (Hono) service exists"
     else
-        print_warning "MongoDB (Ditto) service not found"
+        print_warning "MongoDB (Hono) service not found"
     fi
     
     return 0
@@ -207,7 +188,7 @@ test_service_discovery() {
     print_test "Testing service discovery..."
     local failed=0
     
-    local services=("mosquitto" "ditto-nginx" "ditto-gateway" "hono-service-device-registry" "timescaledb" "postgresql-thingsboard" "mongodb-ditto")
+    local services=("mosquitto" "hono-service-device-registry" "thingsboard" "postgresql-thingsboard" "mongodb-hono")
     
     for svc in "${services[@]}"; do
         if kubectl get svc -n $NAMESPACE $svc &>/dev/null; then
@@ -241,7 +222,7 @@ main() {
     test_mosquitto && ((passed_tests++)) || true
     ((total_tests++))
     
-    test_ditto && ((passed_tests++)) || true
+    test_thingsboard && ((passed_tests++)) || true
     ((total_tests++))
     
     test_hono && ((passed_tests++)) || true

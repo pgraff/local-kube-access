@@ -91,12 +91,6 @@ main() {
     print_status "Removing ThingsBoard..."
     kubectl delete -f ../k8s/thingsboard-deployment.yaml -n "$NAMESPACE" 2>/dev/null || print_warning "ThingsBoard deployment not found"
     
-    # Ditto
-    uninstall_helm_release "ditto"
-    # Remove Ditto MongoDB service alias
-    print_status "Removing Ditto MongoDB service alias..."
-    kubectl delete svc ditto-mongodb -n "$NAMESPACE" 2>/dev/null || print_warning "Ditto MongoDB service not found"
-    
     # Hono
     uninstall_helm_release "hono"
     
@@ -112,11 +106,7 @@ main() {
     uninstall_helm_release "postgresql-thingsboard"
     
     # MongoDB instances
-    uninstall_helm_release "mongodb-ditto"
     uninstall_helm_release "mongodb-hono"
-    
-    # TimescaleDB
-    uninstall_helm_release "timescaledb"
     echo ""
     
     # Phase 3: Clean up PVCs (optional)

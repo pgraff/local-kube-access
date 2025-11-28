@@ -1,0 +1,45 @@
+# Kubernetes Job to push twin-service image to in-cluster registry
+# This job loads the image from a tar file and pushes it to the registry
+#
+# Usage:
+#   1. Copy twin-service.tar to a node: scp /tmp/twin-service.tar scispike@<node-ip>:/tmp/twin-service.tar
+#   2. Update the nodeName in this file to match the node where you copied the tar
+#   3. Apply: kubectl apply -f push-image-job.yaml
+#   4. Check logs: kubectl logs -n docker-registry job/push-twin-service-image -f
+#   5. Clean up: kubectl delete -f push-image-job.yaml
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: push-twin-service-image
+  namespace: docker-registry
+spec:
+  ttlSecondsAfterFinished: 300  # Auto-cleanup after 5 minutes
+  template:
+    spec:
+      # Run on a specific node where the tar file is located
+      # Update this to match your node name
+      nodeName: k8s-worker-08  # CHANGE THIS to the node where you copied the tar
+      restartPolicy: Never
+      containers:
+      - name: skopeo
+        image: quay.io/skopeo/stable:latest
+        command:
+        - /bin/sh
+        - -c
+        - |
+          set -e
+          echo "Loading image from tar..."
+          skopeo copy docker-archive:/host/twin-service.tar docker://docker-registry.docker-registry.svc.cluster.local:5000/twin-service:latest --dest-tls-verify=false
+          echo "✅ Image pushed successfully!"
+          echo "Registry: docker-registry.docker-registry.svc.cluster.local:5000/twin-service:latest"
+        volumeMounts:
+        - name: image-tar
+          mountPath: /host
+          readOnly: true
+      volumes:
+      - name: image-tar
+        hostPath:
+          path: /tmp
+          type: Directory
+

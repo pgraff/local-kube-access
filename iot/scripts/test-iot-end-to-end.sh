@@ -1,6 +1,6 @@
 #!/bin/bash
 # End-to-End IoT Stack Test
-# Demonstrates the complete data flow: Device → Mosquitto → Hono → Kafka → Ditto
+# Demonstrates the complete data flow: Device → Mosquitto → Hono → Kafka → ThingsBoard
 
 set -e
 
@@ -39,7 +39,7 @@ main() {
     
     print_step "Step 1: Verify all services are running..."
     echo "Checking pod status..."
-    kubectl get pods -n $NAMESPACE | grep -E "mosquitto|ditto-gateway|hono-service-device-registry|timescaledb" | head -5
+    kubectl get pods -n $NAMESPACE | grep -E "mosquitto|hono-service-device-registry|thingsboard" | head -5
     echo ""
     
     print_step "Step 2: Test Mosquitto MQTT connection..."
@@ -60,22 +60,22 @@ main() {
         --list 2>&1 | grep -E "hono|iot" | head -5 || echo "Topics will be created when Hono processes messages"
     echo ""
     
-    print_step "Step 4: Test Ditto API..."
-    echo "Testing Ditto Gateway endpoint..."
-    local ditto_response=$(kubectl run ditto-api-test --rm -i --restart=Never \
+    print_step "Step 4: Test ThingsBoard API..."
+    echo "Testing ThingsBoard endpoint..."
+    local tb_response=$(kubectl run thingsboard-api-test --rm -i --restart=Never \
         --image=curlimages/curl:latest -n $NAMESPACE \
-        -- curl -s -o /dev/null -w "%{http_code}" http://ditto-gateway.iot.svc.cluster.local:8080/api/2/things 2>&1 | tail -1)
+        -- curl -s -o /dev/null -w "%{http_code}" http://thingsboard.iot.svc.cluster.local:9090 2>&1 | tail -1)
     
-    if [ "$ditto_response" = "401" ] || [ "$ditto_response" = "200" ]; then
-        print_success "Ditto API responding (HTTP $ditto_response - service is up)"
+    if [ "$tb_response" = "200" ] || [ "$tb_response" = "302" ]; then
+        print_success "ThingsBoard API responding (HTTP $tb_response - service is up)"
     else
-        echo "Ditto response: $ditto_response"
+        echo "ThingsBoard response: $tb_response"
     fi
     echo ""
     
     print_step "Step 5: Verify service connectivity..."
     echo "Service endpoints:"
-    kubectl get svc -n $NAMESPACE | grep -E "mosquitto|ditto-nginx|ditto-gateway|hono-service-device-registry|timescaledb" | \
+    kubectl get svc -n $NAMESPACE | grep -E "mosquitto|hono-service-device-registry|thingsboard" | \
         awk '{printf "  • %-35s %s\n", $1, $3}'
     echo ""
     
@@ -85,8 +85,8 @@ main() {
     echo "Mosquitto:"
     kubectl logs -n $NAMESPACE -l app=mosquitto --tail=3 2>&1 | tail -3 || echo "  (no recent logs)"
     echo ""
-    echo "Ditto Gateway:"
-    kubectl logs -n $NAMESPACE -l app=ditto-gateway --tail=3 2>&1 | tail -3 || echo "  (no recent logs)"
+    echo "ThingsBoard:"
+    kubectl logs -n $NAMESPACE -l app=thingsboard --tail=3 2>&1 | tail -3 || echo "  (no recent logs)"
     echo ""
     echo "Hono Device Registry:"
     kubectl logs -n $NAMESPACE -l app=hono-service-device-registry --tail=3 2>&1 | tail -3 || echo "  (no recent logs)"

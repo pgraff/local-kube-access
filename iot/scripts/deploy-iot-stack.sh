@@ -120,17 +120,8 @@ main() {
     # Phase 3: Deploy Databases
     print_step "Phase 3: Deploying databases..."
     
-    # TimescaleDB
-    if helm list -n "$NAMESPACE" | grep -q timescaledb; then
-        print_warning "TimescaleDB already deployed, skipping..."
-    else
-        print_status "Deploying TimescaleDB..."
-        helm install timescaledb timescale/timescaledb-single \
-            -n "$NAMESPACE" \
-            -f ../k8s/timescaledb-values.yaml \
-            --wait --timeout 15m || print_warning "TimescaleDB deployment timed out, but continuing. Check status manually."
-        print_status "TimescaleDB deployment initiated"
-    fi
+    # Note: TimescaleDB removed - using ThingsBoard PostgreSQL for telemetry storage
+    # If time-series optimizations are needed, use: iot/scripts/add-timescaledb-extension.sh
     
     # MongoDB for Hono
     if helm list -n "$NAMESPACE" | grep -q mongodb-hono; then
@@ -144,17 +135,8 @@ main() {
         print_status "MongoDB for Hono deployed"
     fi
     
-    # MongoDB for Ditto
-    if helm list -n "$NAMESPACE" | grep -q mongodb-ditto; then
-        print_warning "MongoDB for Ditto already deployed, skipping..."
-    else
-        print_status "Deploying MongoDB for Ditto..."
-        helm install mongodb-ditto bitnami/mongodb \
-            -n "$NAMESPACE" \
-            -f ../k8s/mongodb-ditto-values.yaml \
-            --wait --timeout 10m
-        print_status "MongoDB for Ditto deployed"
-    fi
+    # MongoDB for Ditto - REMOVED (no longer needed)
+    # MongoDB for Ditto has been removed. ThingsBoard handles digital twin functionality.
     
     # PostgreSQL for ThingsBoard
     if helm list -n "$NAMESPACE" | grep -q postgresql-thingsboard; then
@@ -195,20 +177,12 @@ main() {
     fi
     echo ""
     
-    # Phase 5: Deploy Digital Twins and APIs
-    print_step "Phase 5: Deploying digital twins..."
-    
-    # Ditto
-    if helm list -n "$NAMESPACE" | grep -q ditto; then
-        print_warning "Ditto already deployed, skipping..."
-    else
-        print_status "Deploying Eclipse Ditto..."
-        helm install ditto atnog/ditto \
-            -n "$NAMESPACE" \
-            -f ../k8s/ditto-values.yaml \
-            --wait --timeout 15m
-        print_status "Ditto deployed"
-    fi
+    # Phase 5: Digital Twin Functionality
+    # NOTE: Ditto and Twin Service have been removed
+    # ThingsBoard handles digital twin functionality via device attributes
+    print_step "Phase 5: Digital Twin functionality..."
+    print_info "ThingsBoard provides digital twin functionality via device attributes."
+    print_info "See: iot/docs/thingsboard-as-digital-twin.md for details."
     echo ""
     
     # Phase 6: Deploy Visualization and Automation
@@ -257,7 +231,7 @@ main() {
     echo ""
     echo "  HTTP services (via Ingress URLs after setup):"
     echo "    http://hono.tailc2013b.ts.net"
-    echo "    http://ditto.tailc2013b.ts.net"
+    echo "    (Digital twin functionality via ThingsBoard - see iot/docs/thingsboard-as-digital-twin.md)"
     echo "    http://thingsboard.tailc2013b.ts.net"
     echo "    http://nodered.tailc2013b.ts.net"
     echo "    See LAPTOP-SETUP.md for setup instructions"

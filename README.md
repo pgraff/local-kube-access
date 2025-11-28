@@ -53,7 +53,7 @@ This repository contains documentation, scripts, and configuration files for man
 - **Management**: Rancher v2.13.0-rc3
 - **Cost Analysis**: Kubecost
 - **Message Broker**: Kafka 4.1.1 (KRaft mode, 3 controllers, 5 brokers)
-- **IoT Platform**: Complete stack with Mosquitto, Hono, Ditto, ThingsBoard, TimescaleDB, and Node-RED
+- **IoT Platform**: Complete stack with Mosquitto, Hono, ThingsBoard (digital twin functionality), and Node-RED
 
 ### Node Configuration
 - **Control Plane**: 3 nodes (k8s-cp-01, k8s-cp-02, k8s-cp-03)
@@ -87,8 +87,7 @@ See [LAPTOP-SETUP.md](LAPTOP-SETUP.md) for detailed Ubuntu/Tailscale setup instr
 - **Kubecost:** http://kubecost.tailc2013b.ts.net
 - **Kafka UI:** http://kafka-ui.tailc2013b.ts.net
 - **Hono:** http://hono.tailc2013b.ts.net (if IoT stack deployed)
-- **Ditto:** http://ditto.tailc2013b.ts.net (if IoT stack deployed)
-- **ThingsBoard:** http://thingsboard.tailc2013b.ts.net (if IoT stack deployed)
+- **ThingsBoard:** http://thingsboard.tailc2013b.ts.net (if IoT stack deployed) - includes digital twin functionality
 - **Node-RED:** http://nodered.tailc2013b.ts.net (if IoT stack deployed)
 
 **Note:** The `/etc/hosts` setup is a one-time configuration per machine. After that, URLs work immediately without any running processes. See [Ingress Setup Guide](cluster/docs/ingress-setup-guide.md) for details.
@@ -121,7 +120,6 @@ It can also be used as a fallback if Ingress is unavailable:
 - **Kubecost:** http://kubecost.tailc2013b.ts.net
 - **Kafka UI:** http://kafka-ui.tailc2013b.ts.net
 - **Hono:** http://hono.tailc2013b.ts.net
-- **Ditto:** http://ditto.tailc2013b.ts.net
 - **ThingsBoard:** http://thingsboard.tailc2013b.ts.net
 - **Node-RED:** http://nodered.tailc2013b.ts.net
 
@@ -184,7 +182,7 @@ See [IoT Stack Setup Guide](iot/docs/iot-setup-guide.md) for complete documentat
 - **[Kubecost Grafana Prometheus Metrics](cluster/docs/kubecost-grafana-prometheus-troubleshooting.md)** - Troubleshooting Prometheus metrics not showing in Grafana
 - **[Kafka Setup Guide](kafka/docs/kafka-setup-guide.md)** - Kafka cluster with 3 controllers and 5 brokers
 - **[Kafka UI Setup Guide](kafka/docs/kafka-ui-setup-guide.md)** - Kafka UI dashboard for monitoring and management
-- **[IoT Stack Setup Guide](iot/docs/iot-setup-guide.md)** - Complete IoT platform with Mosquitto, Hono, Ditto, ThingsBoard, TimescaleDB, and Node-RED
+- **[IoT Stack Setup Guide](iot/docs/iot-setup-guide.md)** - Complete IoT platform with Mosquitto, Hono, ThingsBoard (digital twin), and Node-RED
 - **[Strimzi Local-Path Workaround](kafka/docs/strimzi-local-path-workaround.md)** - Fix for Strimzi with local-path storage
 - **[Add Node Guide](cluster/docs/add-node-guide.md)** - How to add new nodes to the RKE2 cluster
 
@@ -208,10 +206,16 @@ All scripts use your local kubeconfig and work from anywhere (Mac, Linux, etc.):
 - **`iot/scripts/access-mosquitto.sh`** - Port-forward to Mosquitto MQTT broker (port 1883) - TCP service
 
 **IoT Stack Management:**
-- **`iot/scripts/deploy-iot-stack.sh`** - Deploy complete IoT stack (Mosquitto, Hono, Ditto, ThingsBoard, TimescaleDB, Node-RED)
+- **`iot/scripts/deploy-iot-stack.sh`** - Deploy complete IoT stack (Mosquitto, Hono, ThingsBoard, Node-RED)
 - **`iot/scripts/uninstall-iot-stack.sh`** - Uninstall complete IoT stack
+**Digital Twin Functionality:**
+- **ThingsBoard** provides digital twin capabilities via device attributes
+- **`iot/docs/thingsboard-as-digital-twin.md`** - Guide for using ThingsBoard as digital twin
+- **`iot/docs/STACK-SIMPLIFICATION-SUMMARY.md`** - Summary of architecture changes
 
-**Note:** HTTP services (Rancher, Longhorn, Kubecost, Kafka UI, Hono, Ditto, ThingsBoard, Node-RED) are now accessible via Ingress URLs. Individual port-forward scripts for these services have been removed. See [LAPTOP-SETUP.md](LAPTOP-SETUP.md) for URL-based access setup.
+**Note:** HTTP services (Rancher, Longhorn, Kubecost, Kafka UI, Hono, ThingsBoard, Node-RED) are now accessible via Ingress URLs. Individual port-forward scripts for these services have been removed. See [LAPTOP-SETUP.md](LAPTOP-SETUP.md) for URL-based access setup.
+
+**Stack Simplified:** The IoT stack has been simplified by removing TimescaleDB and Twin Service. ThingsBoard now handles digital twin functionality via device attributes. See [iot/docs/STACK-SIMPLIFICATION-SUMMARY.md](iot/docs/STACK-SIMPLIFICATION-SUMMARY.md) for details.
 
 ### Setup Scripts
 - **`cluster/scripts/add-node.sh`** - Automate adding a new node to the cluster (takes current hostname and new hostname)
@@ -367,8 +371,6 @@ k8s-home/
     │   ├── mongodb-ditto-values.yaml
     │   ├── mongodb-hono-values.yaml
     │   ├── postgresql-thingsboard-values.yaml
-    │   ├── timescaledb-values.yaml
-    │   └── ditto-mongodb-service.yaml
     ├── scripts/                   # Shell scripts
     │   ├── deploy-iot-stack.sh
     │   ├── uninstall-iot-stack.sh

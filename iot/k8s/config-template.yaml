@@ -1,0 +1,47 @@
+# IoT Stack Configuration Template
+# Copy this file to config.yaml and customize for your cluster
+# Then use: envsubst < deployment.yaml | kubectl apply -f -
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: iot-stack-config
+  namespace: iot
+data:
+  # Kafka Configuration
+  KAFKA_BOOTSTRAP_SERVERS: "kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092"
+  KAFKA_NAMESPACE: "kafka"
+  KAFKA_CLUSTER_NAME: "kafka-cluster"
+  
+  # Storage Configuration
+  STORAGE_CLASS: "longhorn"  # Change to your storage class (e.g., "standard", "gp2", "local-path")
+  
+  # Namespace
+  NAMESPACE: "iot"
+  
+  # Twin Service Configuration
+  TWIN_SERVICE_IMAGE: "twin-service:latest"  # Update with your image registry
+  TWIN_SERVICE_IMAGE_PULL_POLICY: "IfNotPresent"
+  
+  # Hono Configuration
+  HONO_MONGODB_HOST: "mongodb-hono.iot.svc.cluster.local"
+  HONO_MONGODB_PORT: "27017"
+  HONO_MONGODB_DATABASE: "hono"
+  HONO_MONGODB_USERNAME: "hono"
+  HONO_MONGODB_PASSWORD: "hono-mongodb-password"  # Change in production!
+  
+  # ThingsBoard Configuration
+  THINGSBOARD_POSTGRESQL_HOST: "postgresql-thingsboard.iot.svc.cluster.local"
+  THINGSBOARD_POSTGRESQL_PORT: "5432"
+  THINGSBOARD_POSTGRESQL_DATABASE: "thingsboard"
+  THINGSBOARD_POSTGRESQL_USERNAME: "thingsboard"
+  THINGSBOARD_POSTGRESQL_PASSWORD: "thingsboard-password"  # Change in production!
+  
+  # Kafka Topics
+  HONO_TELEMETRY_TOPIC: "hono.telemetry"
+  HONO_EVENT_TOPIC: "hono.event"
+  HONO_COMMAND_TOPIC: "hono.command"
+  TWIN_TELEMETRY_TOPIC: "hono.telemetry"
+  TWIN_TWINS_TOPIC: "device.twins"
+  TWIN_COMMANDS_TOPIC: "device.commands"
+
