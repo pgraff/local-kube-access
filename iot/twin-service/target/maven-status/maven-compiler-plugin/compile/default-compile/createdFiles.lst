@@ -1,0 +1,9 @@
+com/k8s/home/twin/model/TelemetryMessage$TelemetryMessageBuilder.class
+com/k8s/home/twin/service/TwinService.class
+com/k8s/home/twin/model/DeviceTwin.class
+com/k8s/home/twin/stream/TwinStreamProcessor.class
+com/k8s/home/twin/model/TelemetryMessage.class
+com/k8s/home/twin/model/DeviceTwin$DeviceTwinBuilder.class
+com/k8s/home/twin/TwinServiceApplication.class
+com/k8s/home/twin/config/KafkaConfig.class
+com/k8s/home/twin/api/TwinController.class

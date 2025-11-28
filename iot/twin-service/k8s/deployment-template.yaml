@@ -1,0 +1,102 @@
+# Twin Service Deployment Template
+# Use with: envsubst < deployment-template.yaml | kubectl apply -f -
+# Or set environment variables and apply directly
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: twin-service
+  namespace: ${NAMESPACE:-iot}
+  labels:
+    app: twin-service
+    component: digital-twin
+spec:
+  replicas: ${TWIN_SERVICE_REPLICAS:-2}
+  selector:
+    matchLabels:
+      app: twin-service
+  template:
+    metadata:
+      labels:
+        app: twin-service
+        component: digital-twin
+    spec:
+      containers:
+      - name: twin-service
+        image: ${TWIN_SERVICE_IMAGE:-twin-service:latest}
+        imagePullPolicy: ${TWIN_SERVICE_IMAGE_PULL_POLICY:-IfNotPresent}
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        env:
+        - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+          value: "${KAFKA_BOOTSTRAP_SERVERS:-kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092}"
+        - name: SPRING_KAFKA_STREAMS_APPLICATION_ID
+          value: "twin-service"
+        - name: SERVER_PORT
+          value: "8080"
+        - name: TWIN_TELEMETRY_TOPIC
+          value: "${TWIN_TELEMETRY_TOPIC:-hono.telemetry}"
+        - name: TWIN_TWINS_TOPIC
+          value: "${TWIN_TWINS_TOPIC:-device.twins}"
+        - name: TWIN_COMMANDS_TOPIC
+          value: "${TWIN_COMMANDS_TOPIC:-device.commands}"
+        - name: JAVA_OPTS
+          value: "-Xmx1g -Xms512m"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "200m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: kafka-streams-state
+          mountPath: /tmp/kafka-streams
+      volumes:
+      - name: kafka-streams-state
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: twin-service
+  namespace: ${NAMESPACE:-iot}
+  labels:
+    app: twin-service
+    component: digital-twin
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  selector:
+    app: twin-service
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: twin-service
+  namespace: ${NAMESPACE:-iot}
+  labels:
+    app: twin-service
+

@@ -1,0 +1,73 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: twin-service
+  
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092}
+    
+    streams:
+      application-id: ${SPRING_KAFKA_STREAMS_APPLICATION_ID:twin-service}
+      replication-factor: 3
+      num-stream-threads: 2
+      
+      properties:
+        # State store configuration
+        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        default.value.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        # Exactly-once processing
+        processing.guarantee: exactly_once_v2
+        # State store directory
+        state.dir: /tmp/kafka-streams
+        
+    consumer:
+      group-id: ${SPRING_KAFKA_STREAMS_APPLICATION_ID:twin-service}
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 3
+
+# Application configuration
+twin:
+  # Kafka topics
+  topics:
+    # Input topic: device telemetry from Hono
+    telemetry: ${TWIN_TELEMETRY_TOPIC:hono.telemetry}
+    # Output topic: twin state updates
+    twins: ${TWIN_TWINS_TOPIC:device.twins}
+    # Commands topic: desired state updates
+    commands: ${TWIN_COMMANDS_TOPIC:device.commands}
+  
+  # State store configuration
+  state-store:
+    name: twin-store
+    # Cache size (number of twins to keep in memory)
+    cache-size: 10000
+
+# Actuator configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.k8s-home.twin: DEBUG
+    org.apache.kafka: INFO
+    org.springframework.kafka: INFO
+
