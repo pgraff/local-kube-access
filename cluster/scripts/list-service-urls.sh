@@ -4,7 +4,9 @@
 
 KUBECONFIG_FILE="$HOME/.kube/config-rke2-cluster.yaml"
 TAILSCALE_DOMAIN="tailc2013b.ts.net"
-NODE_IP="100.68.247.112"  # Primary control plane node
+# Primary control plane node IP (k8s-cp-01)
+# This should match the first control plane node in the cluster
+NODE_IP="100.68.247.112"
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -74,12 +76,19 @@ echo ""
 if kubectl get namespace iot &>/dev/null; then
     print_header "IoT Stack Services:"
     print_url "Hono:          http://hono.$TAILSCALE_DOMAIN"
-    print_url "Ditto:         http://ditto.$TAILSCALE_DOMAIN"
     print_url "ThingsBoard:   http://thingsboard.$TAILSCALE_DOMAIN"
     print_url "Node-RED:      http://nodered.$TAILSCALE_DOMAIN"
+    print_url "Twin Service:  http://twin-service.$TAILSCALE_DOMAIN"
     echo ""
     print_warning "Note: Mosquitto (MQTT port 1883) requires port-forwarding (TCP service)"
 fi
+
+# Additional services
+print_header "Additional Services:"
+print_url "JupyterHub:    http://jupyterhub.$TAILSCALE_DOMAIN"
+print_url "MinIO:         http://minio.$TAILSCALE_DOMAIN"
+print_url "Argo:          http://argo.$TAILSCALE_DOMAIN"
+echo ""
 
 echo ""
 print_header "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -95,10 +104,13 @@ echo "  $NODE_IP  kafka-ui.$TAILSCALE_DOMAIN"
 echo "  $NODE_IP  rancher.$TAILSCALE_DOMAIN"
 if kubectl get namespace iot &>/dev/null; then
     echo "  $NODE_IP  hono.$TAILSCALE_DOMAIN"
-    echo "  $NODE_IP  ditto.$TAILSCALE_DOMAIN"
     echo "  $NODE_IP  thingsboard.$TAILSCALE_DOMAIN"
     echo "  $NODE_IP  nodered.$TAILSCALE_DOMAIN"
+    echo "  $NODE_IP  twin-service.$TAILSCALE_DOMAIN"
 fi
+echo "  $NODE_IP  jupyterhub.$TAILSCALE_DOMAIN"
+echo "  $NODE_IP  minio.$TAILSCALE_DOMAIN"
+echo "  $NODE_IP  argo.$TAILSCALE_DOMAIN"
 echo ""
 print_warning "Method 2: Use curl with Host header:"
 echo "  curl -H 'Host: longhorn.$TAILSCALE_DOMAIN' http://$NODE_IP"

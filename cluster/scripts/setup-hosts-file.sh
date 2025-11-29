@@ -2,7 +2,9 @@
 # Helper script to add cluster service URLs to /etc/hosts
 # This enables URL-based access when Tailscale MagicDNS doesn't resolve subdomains
 
-NODE_IP="100.68.247.112"  # Primary control plane node
+# Primary control plane node IP (k8s-cp-01)
+# This should match the first control plane node in the cluster
+NODE_IP="100.68.247.112"
 HOSTS_FILE="/etc/hosts"
 TEMP_FILE=$(mktemp)
 
@@ -38,9 +40,12 @@ declare -A SERVICES=(
     ["kafka-ui.tailc2013b.ts.net"]="Kafka UI"
     ["rancher.tailc2013b.ts.net"]="Rancher"
     ["hono.tailc2013b.ts.net"]="Hono"
-    ["ditto.tailc2013b.ts.net"]="Ditto"
     ["thingsboard.tailc2013b.ts.net"]="ThingsBoard"
     ["nodered.tailc2013b.ts.net"]="Node-RED"
+    ["jupyterhub.tailc2013b.ts.net"]="JupyterHub"
+    ["minio.tailc2013b.ts.net"]="MinIO"
+    ["argo.tailc2013b.ts.net"]="Argo Workflows"
+    ["twin-service.tailc2013b.ts.net"]="Twin Service"
 )
 
 print_status "Setting up /etc/hosts entries for cluster services..."

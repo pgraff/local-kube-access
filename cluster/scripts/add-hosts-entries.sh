@@ -5,7 +5,9 @@
 #
 # For complete setup instructions, see: LAPTOP-SETUP.md
 
-NODE_IP="100.68.247.112"  # Primary control plane node
+# Primary control plane node IP (k8s-cp-01)
+# This should match the first control plane node in the cluster
+NODE_IP="100.68.247.112"
 HOSTS_FILE="/etc/hosts"
 
 # Colors
@@ -56,9 +58,12 @@ $NODE_IP  kubecost.tailc2013b.ts.net
 $NODE_IP  kafka-ui.tailc2013b.ts.net
 $NODE_IP  rancher.tailc2013b.ts.net
 $NODE_IP  hono.tailc2013b.ts.net
-$NODE_IP  ditto.tailc2013b.ts.net
 $NODE_IP  thingsboard.tailc2013b.ts.net
 $NODE_IP  nodered.tailc2013b.ts.net
+$NODE_IP  jupyterhub.tailc2013b.ts.net
+$NODE_IP  minio.tailc2013b.ts.net
+$NODE_IP  argo.tailc2013b.ts.net
+$NODE_IP  twin-service.tailc2013b.ts.net
 EOHOSTS
 
 echo -e "${GREEN}✓ Entries added successfully!${NC}"
@@ -69,9 +74,12 @@ echo "  • Kubecost:      http://kubecost.tailc2013b.ts.net"
 echo "  • Kafka UI:      http://kafka-ui.tailc2013b.ts.net"
 echo "  • Rancher:       https://rancher.tailc2013b.ts.net"
 echo "  • Hono:          http://hono.tailc2013b.ts.net"
-echo "  • Ditto:         http://ditto.tailc2013b.ts.net"
 echo "  • ThingsBoard:   http://thingsboard.tailc2013b.ts.net"
 echo "  • Node-RED:      http://nodered.tailc2013b.ts.net"
+echo "  • JupyterHub:    http://jupyterhub.tailc2013b.ts.net"
+echo "  • MinIO:         http://minio.tailc2013b.ts.net"
+echo "  • Argo:          http://argo.tailc2013b.ts.net"
+echo "  • Twin Service:  http://twin-service.tailc2013b.ts.net"
 echo ""
 echo "Test with: curl -I http://longhorn.tailc2013b.ts.net"
 
