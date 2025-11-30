@@ -369,9 +369,16 @@ kubectl get cn
 
 **IoT Stack Services (if deployed, via Ingress URLs):**
 - **Hono:** http://hono.tailc2013b.ts.net
-- **Ditto:** http://ditto.tailc2013b.ts.net
 - **ThingsBoard:** http://thingsboard.tailc2013b.ts.net
 - **Node-RED:** http://nodered.tailc2013b.ts.net
+- **Twin Service:** http://twin-service.tailc2013b.ts.net
+
+**Additional Services (if deployed):**
+- **JupyterHub:** http://jupyterhub.tailc2013b.ts.net
+- **Argo Workflows:** http://argo.tailc2013b.ts.net
+- **MinIO Console:** http://minio.tailc2013b.ts.net
+
+**Note:** Service URLs use storage node IP (100.111.119.104) which has working ingress on port 80. Control plane nodes do not expose ingress on port 80.
 
 **Setup:**
 - Deploy ingress resources: `./cluster/scripts/setup-ingress.sh`

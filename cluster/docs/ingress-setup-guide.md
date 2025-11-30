@@ -74,14 +74,17 @@ sudo ./cluster/scripts/setup-hosts-file.sh
 This script automatically adds all cluster service entries to `/etc/hosts`. Alternatively, manually add:
 
 ```
-100.68.247.112  longhorn.tailc2013b.ts.net
-100.68.247.112  kubecost.tailc2013b.ts.net
-100.68.247.112  kafka-ui.tailc2013b.ts.net
-100.68.247.112  rancher.tailc2013b.ts.net
-100.68.247.112  hono.tailc2013b.ts.net
-100.68.247.112  ditto.tailc2013b.ts.net
-100.68.247.112  thingsboard.tailc2013b.ts.net
-100.68.247.112  nodered.tailc2013b.ts.net
+100.111.119.104  longhorn.tailc2013b.ts.net
+100.111.119.104  kubecost.tailc2013b.ts.net
+100.111.119.104  kafka-ui.tailc2013b.ts.net
+100.111.119.104  rancher.tailc2013b.ts.net
+100.111.119.104  hono.tailc2013b.ts.net
+100.111.119.104  thingsboard.tailc2013b.ts.net
+100.111.119.104  nodered.tailc2013b.ts.net
+100.111.119.104  jupyterhub.tailc2013b.ts.net
+100.111.119.104  argo.tailc2013b.ts.net
+100.111.119.104  minio.tailc2013b.ts.net
+100.111.119.104  twin-service.tailc2013b.ts.net
 ```
 
 **Benefits:**
@@ -149,22 +152,27 @@ sudo nano /etc/hosts
 
 Add:
 ```
-100.68.247.112  longhorn.tailc2013b.ts.net
-100.68.247.112  kubecost.tailc2013b.ts.net
-100.68.247.112  kafka-ui.tailc2013b.ts.net
-100.68.247.112  rancher.tailc2013b.ts.net
-100.68.247.112  hono.tailc2013b.ts.net
-100.68.247.112  ditto.tailc2013b.ts.net
-100.68.247.112  thingsboard.tailc2013b.ts.net
-100.68.247.112  nodered.tailc2013b.ts.net
+100.111.119.104  longhorn.tailc2013b.ts.net
+100.111.119.104  kubecost.tailc2013b.ts.net
+100.111.119.104  kafka-ui.tailc2013b.ts.net
+100.111.119.104  rancher.tailc2013b.ts.net
+100.111.119.104  hono.tailc2013b.ts.net
+100.111.119.104  thingsboard.tailc2013b.ts.net
+100.111.119.104  nodered.tailc2013b.ts.net
+100.111.119.104  jupyterhub.tailc2013b.ts.net
+100.111.119.104  argo.tailc2013b.ts.net
+100.111.119.104  minio.tailc2013b.ts.net
+100.111.119.104  twin-service.tailc2013b.ts.net
 ```
 
-Replace `100.68.247.112` with any node IP from your cluster.
+**Note:** Use `100.111.119.104` (storage node k8s-storage-01) which has working ingress on port 80. Control plane nodes do not expose ingress on port 80.
+
+To detect which node IP works, use: `./cluster/scripts/detect-working-node-ip.sh`
 
 ### Method 2: Use Host Header with curl
 
 ```bash
-curl -H 'Host: longhorn.tailc2013b.ts.net' http://100.68.247.112
+curl -H 'Host: longhorn.tailc2013b.ts.net' http://100.111.119.104
 ```
 
 ### Method 3: Browser Extension
@@ -172,7 +180,7 @@ curl -H 'Host: longhorn.tailc2013b.ts.net' http://100.68.247.112
 Use a browser extension like "ModHeader" or "Header Editor" to set the `Host` header:
 - Header: `Host`
 - Value: `longhorn.tailc2013b.ts.net`
-- URL: `http://100.68.247.112`
+- URL: `http://100.111.119.104`
 
 ## Ingress Resources
 

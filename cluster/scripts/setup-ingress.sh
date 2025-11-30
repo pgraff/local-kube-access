@@ -144,8 +144,9 @@ fi
 
 echo ""
 print_status "Node IP fallback (if MagicDNS not available):"
-echo "  Access via any node IP, e.g.: http://100.68.247.112"
+echo "  Access via storage node IP: http://100.111.119.104"
 echo "  (Use Host header: Host: longhorn.tailc2013b.ts.net)"
+echo "  Note: Storage node (k8s-storage-01) has working ingress on port 80"
 echo ""
 print_status "To list all service URLs, run: ./cluster/scripts/list-service-urls.sh"
 

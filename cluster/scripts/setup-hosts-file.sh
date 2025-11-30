@@ -2,9 +2,9 @@
 # Helper script to add cluster service URLs to /etc/hosts
 # This enables URL-based access when Tailscale MagicDNS doesn't resolve subdomains
 
-# Primary control plane node IP (k8s-cp-01)
-# This should match the first control plane node in the cluster
-NODE_IP="100.68.247.112"
+# Storage node IP (k8s-storage-01) - has working ingress controller on port 80
+# Note: Control plane nodes don't expose ingress on port 80
+NODE_IP="100.111.119.104"
 HOSTS_FILE="/etc/hosts"
 TEMP_FILE=$(mktemp)
 

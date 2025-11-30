@@ -18,7 +18,7 @@ This guide shows you how to set up your Ubuntu laptop (with Tailscale) to access
 tailscale status
 
 # Verify you can reach the cluster node
-ping 100.68.247.112
+ping 100.111.119.104
 ```
 
 ### Step 2: Add Service URLs to /etc/hosts
@@ -30,17 +30,17 @@ sudo bash -c 'cat >> /etc/hosts << EOHOSTS
 
 # Kubernetes Cluster Service URLs (via Ingress)
 # Added on $(date)
-100.68.247.112  longhorn.tailc2013b.ts.net
-100.68.247.112  kubecost.tailc2013b.ts.net
-100.68.247.112  kafka-ui.tailc2013b.ts.net
-100.68.247.112  rancher.tailc2013b.ts.net
-100.68.247.112  hono.tailc2013b.ts.net
-100.68.247.112  ditto.tailc2013b.ts.net
-100.68.247.112  thingsboard.tailc2013b.ts.net
-100.68.247.112  nodered.tailc2013b.ts.net
-100.68.247.112  jupyterhub.tailc2013b.ts.net
-100.68.247.112  argo.tailc2013b.ts.net
-100.68.247.112  minio.tailc2013b.ts.net
+100.111.119.104  longhorn.tailc2013b.ts.net
+100.111.119.104  kubecost.tailc2013b.ts.net
+100.111.119.104  kafka-ui.tailc2013b.ts.net
+100.111.119.104  rancher.tailc2013b.ts.net
+100.111.119.104  hono.tailc2013b.ts.net
+100.111.119.104  thingsboard.tailc2013b.ts.net
+100.111.119.104  nodered.tailc2013b.ts.net
+100.111.119.104  jupyterhub.tailc2013b.ts.net
+100.111.119.104  argo.tailc2013b.ts.net
+100.111.119.104  minio.tailc2013b.ts.net
+100.111.119.104  twin-service.tailc2013b.ts.net
 EOHOSTS
 '
 ```
@@ -61,7 +61,7 @@ sudo ./cluster/scripts/add-hosts-entries.sh
 ```bash
 # Test DNS resolution
 nslookup longhorn.tailc2013b.ts.net
-# Should show: 100.68.247.112
+# Should show: 100.111.119.104
 
 # Test HTTP access
 curl -I http://longhorn.tailc2013b.ts.net
@@ -98,9 +98,11 @@ Tailscale MagicDNS resolves device hostnames (like `k8s-cp-01.tailc2013b.ts.net`
 
 ### Node IP Address
 
-The setup uses `100.68.247.112` (primary control plane node). The ingress controller runs on all nodes, so any node IP will work, but this is the recommended one.
+The setup uses `100.111.119.104` (storage node k8s-storage-01). This node has a working ingress controller on port 80. 
 
-If you need to use a different node IP, replace `100.68.247.112` in the `/etc/hosts` entries.
+**Note:** Control plane nodes (like `100.68.247.112`) do not expose ingress on port 80, so the storage node IP must be used for service access via ingress URLs.
+
+If you need to use a different node IP, you can test which nodes have working ingress using: `./cluster/scripts/detect-working-node-ip.sh`
 
 ## Troubleshooting
 
@@ -130,10 +132,10 @@ sudo resolvectl flush-caches  # Ubuntu 20.04+
 tailscale status
 
 # 2. Test connectivity to node
-ping 100.68.247.112
+ping 100.111.119.104
 
 # 3. Test with Host header (bypasses DNS)
-curl -H "Host: longhorn.tailc2013b.ts.net" http://100.68.247.112
+curl -H "Host: longhorn.tailc2013b.ts.net" http://100.111.119.104
 
 # 4. Check if ingress is working
 # (requires kubeconfig - see cluster verification below)
@@ -200,7 +202,7 @@ If you prefer not to edit `/etc/hosts`, you can use a browser extension:
 2. **Set Host header:**
    - Header name: `Host`
    - Header value: `longhorn.tailc2013b.ts.net`
-3. **Access:** `http://100.68.247.112`
+3. **Access:** `http://100.111.119.104`
 
 This works but requires setting the header for each service separately.
 

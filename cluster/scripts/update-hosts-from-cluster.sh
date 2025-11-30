@@ -49,18 +49,42 @@ print_header "  Updating /etc/hosts from Kubernetes Cluster"
 print_header "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
-# Get control plane node IP (prefer the first ready control plane node)
-print_status "Detecting control plane node IP..."
-NODE_IP=$(kubectl get nodes -o json 2>/dev/null | \
-    jq -r '.items[] | select(.metadata.labels."node-role.kubernetes.io/control-plane" != null) | select(.status.conditions[] | select(.type=="Ready" and .status=="True")) | .status.addresses[] | select(.type=="InternalIP") | .address' | \
-    head -1)
+# Detect working node IP by testing ingress connectivity
+print_status "Detecting node IP with working ingress..."
+TEST_HOSTS=$(kubectl get ingress --all-namespaces -o json 2>/dev/null | \
+    jq -r '.items[0].spec.rules[0].host' | head -1)
 
-if [ -z "$NODE_IP" ]; then
-    # Fallback: get any ready node IP
-    print_warning "No control plane node found, using first ready node..."
-    NODE_IP=$(kubectl get nodes -o json 2>/dev/null | \
-        jq -r '.items[] | select(.status.conditions[] | select(.type=="Ready" and .status=="True")) | .status.addresses[] | select(.type=="InternalIP") | .address' | \
-        head -1)
+if [ -z "$TEST_HOSTS" ]; then
+    TEST_HOSTS="longhorn.tailc2013b.ts.net"
+fi
+
+# Get candidate IPs from ingress status
+CANDIDATE_IPS=$(kubectl get ingress --all-namespaces -o json 2>/dev/null | \
+    jq -r '.items[0].status.loadBalancer.ingress[]?.ip' | \
+    sort -u | head -5)
+
+if [ -z "$CANDIDATE_IPS" ]; then
+    # Fallback: use storage node IP (known to work)
+    print_warning "No ingress IPs in status, using known working storage node IP..."
+    NODE_IP="100.111.119.104"
+else
+    # Test each IP to find one that works
+    NODE_IP=""
+    for ip in $CANDIDATE_IPS; do
+        if timeout 2 curl -s -I -H "Host: $TEST_HOSTS" "http://$ip" >/dev/null 2>&1; then
+            HTTP_CODE=$(timeout 2 curl -s -o /dev/null -w "%{http_code}" -H "Host: $TEST_HOSTS" "http://$ip" 2>/dev/null)
+            if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "301" ] || [ "$HTTP_CODE" = "302" ]; then
+                NODE_IP="$ip"
+                break
+            fi
+        fi
+    done
+    
+    if [ -z "$NODE_IP" ]; then
+        # Fallback to known working IP
+        print_warning "Could not detect working IP, using known working storage node IP..."
+        NODE_IP="100.111.119.104"
+    fi
 fi
 
 if [ -z "$NODE_IP" ]; then

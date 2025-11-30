@@ -4,9 +4,9 @@
 
 KUBECONFIG_FILE="$HOME/.kube/config-rke2-cluster.yaml"
 TAILSCALE_DOMAIN="tailc2013b.ts.net"
-# Primary control plane node IP (k8s-cp-01)
-# This should match the first control plane node in the cluster
-NODE_IP="100.68.247.112"
+# Storage node IP (k8s-storage-01) - has working ingress controller on port 80
+# Note: Control plane nodes don't expose ingress on port 80
+NODE_IP="100.111.119.104"
 
 # Colors for output
 GREEN='\033[0;32m'
