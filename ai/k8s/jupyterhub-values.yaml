@@ -19,11 +19,26 @@ hub:
     Authenticator:
       admin_users:
         - admin
-
+    
+    # Spawner configuration
+    KubeSpawner:
+      events_enabled: false  # Disable event reflector to avoid timeout issues
+      start_timeout: 300  # 5 minutes for PVC creation and pod startup
+      k8s_api_request_timeout: 60  # 1 minute for Kubernetes API requests
+  
   # Service configuration
   service:
     type: ClusterIP
     annotations: {}
+  
+  # Hub database storage (use local-path to avoid Longhorn attachment issues)
+  db:
+    type: sqlite-pvc
+    pvc:
+      storageClassName: local-path  # Use local-path instead of Longhorn for hub database
+      accessModes:
+        - ReadWriteOnce
+      storage: 1Gi
 
 # Single-user notebook configuration
 singleuser:
@@ -39,7 +54,11 @@ singleuser:
   storage:
     type: dynamic
     capacity: 10Gi
-    # Note: Storage class will be set via post-deployment patch if needed
+    dynamic:
+      storageClass: local-path  # Use local-path for faster provisioning (local disk, no replication)
+  
+  # Spawner timeout
+  startTimeout: 300  # 5 minutes for PVC creation and pod startup
   
   # Environment variables for MinIO access
   extraEnv:
@@ -63,22 +82,10 @@ singleuser:
   
   # Network policy to allow access to MinIO and cluster services
   networkPolicy:
-    enabled: true
-    egress:
-      - to:
-        - namespaceSelector:
-            matchLabels:
-              name: ai
-        ports:
-          - protocol: TCP
-            port: 9000
-      - to:
-        - namespaceSelector: {}
-        ports:
-          - protocol: TCP
-            port: 53
-          - protocol: UDP
-            port: 53
+    enabled: false  # Disable network policy to allow hub pod to access Kubernetes API
+    # Note: Network policies were blocking hub pod from accessing Kubernetes API server
+    # which caused reflector timeouts. Disabling for now - can be re-enabled with proper
+    # egress rules for API server access if needed.
 
 # Proxy configuration
 proxy:
