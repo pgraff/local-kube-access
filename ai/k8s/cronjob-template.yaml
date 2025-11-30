@@ -1,0 +1,147 @@
+# CronJob Template for Scheduled Notebook Execution
+# 
+# Usage:
+#   1. Copy this template
+#   2. Update the schedule, notebook paths, and parameters
+#   3. Update the PVC claimName to match the user's PVC
+#   4. Apply: kubectl apply -f <your-cronjob.yaml> -n ai
+#
+# Example:
+#   kubectl create cronjob daily-report \
+#     --from=cronjob/notebook-cronjob-template \
+#     --schedule="0 9 * * *" \
+#     -n ai
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: notebook-cronjob-template
+  namespace: ai
+  labels:
+    app: papermill
+    component: scheduled-notebook
+spec:
+  schedule: "0 9 * * *"  # Daily at 9 AM UTC - adjust as needed
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid  # Don't run new job if previous is still running
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 86400  # Clean up after 24 hours
+      template:
+        metadata:
+          labels:
+            app: papermill
+            component: scheduled-notebook
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: papermill
+            image: jupyter/scipy-notebook:python-3.10
+            command:
+              - /bin/bash
+              - -c
+              - |
+                set -e
+                echo "Installing papermill and MinIO client..."
+                pip install --quiet --no-cache-dir papermill boto3 s3fs
+                
+                echo "=== Scheduled Notebook Execution ==="
+                echo "Timestamp: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+                echo "Notebook path: $NOTEBOOK_PATH"
+                echo "Output path: $OUTPUT_PATH"
+                echo "Parameters: ${PARAMETERS:-{}}"
+                
+                # Parse parameters if provided
+                if [ -n "$PARAMETERS" ]; then
+                  echo "$PARAMETERS" > /tmp/params.json
+                  PARAMS_ARG="--parameters /tmp/params.json"
+                else
+                  PARAMS_ARG=""
+                fi
+                
+                # Execute notebook with papermill
+                if [ -n "$MINIO_ENDPOINT" ] && [ -n "$OUTPUT_TO_MINIO" ] && [ "$OUTPUT_TO_MINIO" = "true" ]; then
+                  echo "Output will be saved to MinIO bucket: $MINIO_BUCKET"
+                  # Save to MinIO using boto3
+                  papermill $NOTEBOOK_PATH /tmp/output.ipynb $PARAMS_ARG || true
+                  python3 << EOF
+import boto3
+import json
+from datetime import datetime
+
+s3_client = boto3.client(
+    's3',
+    endpoint_url=f"http://$MINIO_ENDPOINT",
+    aws_access_key_id="$MINIO_ACCESS_KEY",
+    aws_secret_access_key="$MINIO_SECRET_KEY",
+    region_name="$MINIO_REGION"
+)
+
+bucket = "$MINIO_BUCKET"
+# Add timestamp to output path
+timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+key = f"$OUTPUT_PATH".lstrip('/').replace('.ipynb', f'_{timestamp}.ipynb')
+
+s3_client.upload_file('/tmp/output.ipynb', bucket, key)
+print(f"Uploaded to s3://{bucket}/{key}")
+EOF
+                else
+                  # Save to local path (PVC) with timestamp
+                  TIMESTAMP=$(date -u +"%Y%m%d_%H%M%S")
+                  OUTPUT_WITH_TIMESTAMP="${OUTPUT_PATH%.ipynb}_${TIMESTAMP}.ipynb"
+                  echo "Output will be saved to: $OUTPUT_WITH_TIMESTAMP"
+                  papermill $NOTEBOOK_PATH $OUTPUT_WITH_TIMESTAMP $PARAMS_ARG
+                fi
+                
+                echo "Notebook execution completed successfully!"
+            env:
+            - name: NOTEBOOK_PATH
+              value: "/home/jovyan/work/input.ipynb"  # Update with actual notebook path
+            - name: OUTPUT_PATH
+              value: "/home/jovyan/work/output.ipynb"  # Update with desired output path
+            - name: PARAMETERS
+              value: "{}"  # JSON string of parameters, e.g., '{"date":"2024-01-01","model":"production"}'
+            - name: MINIO_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: minio-config
+                  key: MINIO_ENDPOINT
+            - name: MINIO_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  name: minio-config
+                  key: MINIO_BUCKET
+            - name: MINIO_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: minio-config
+                  key: MINIO_REGION
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-credentials
+                  key: accesskey
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-credentials
+                  key: secretkey
+            - name: OUTPUT_TO_MINIO
+              value: "false"  # Set to "true" to save output to MinIO instead of PVC
+            volumeMounts:
+            - name: user-pvc
+              mountPath: /home/jovyan/work
+              subPath: work
+            resources:
+              requests:
+                memory: "1Gi"
+                cpu: "500m"
+              limits:
+                memory: "2Gi"
+                cpu: "1000m"
+          volumes:
+          - name: user-pvc
+            persistentVolumeClaim:
+              claimName: claim-username  # Replace with actual PVC name (e.g., claim-<username>)
+

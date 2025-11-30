@@ -15,7 +15,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: hono-adapter-http
+            name: hono-service-device-registry
             port:
-              number: 8443
+              number: 8080
 

@@ -1,0 +1,20 @@
+workflow:
+  serviceAccount:
+    create: true
+    name: argo-workflow
+
+server:
+  enabled: true
+  serviceType: ClusterIP
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - argo.tailc2013b.ts.net
+
+controller:
+  workflowNamespaces:
+    - ai
+    - argo
+
+

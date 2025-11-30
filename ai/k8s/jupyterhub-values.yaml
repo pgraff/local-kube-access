@@ -1,0 +1,111 @@
+# JupyterHub Helm Chart Values
+# Zero-to-JupyterHub configuration for AI workspace
+
+hub:
+  # Use default image from chart - will use appropriate version automatically
+  # image:
+  #   name: jupyterhub/k8s-hub
+  #   tag: "3.1.1"
+  
+  config:
+    JupyterHub:
+      authenticator_class: dummy
+      admin_users:
+        - admin
+    DummyAuthenticator:
+      password: "jupyterhub"  # Default password for all users
+    
+    # Allow any username/password combination
+    Authenticator:
+      admin_users:
+        - admin
+
+  # Service configuration
+  service:
+    type: ClusterIP
+    annotations: {}
+
+# Single-user notebook configuration
+singleuser:
+  # Use JupyterLab as default
+  defaultUrl: /lab
+  
+  # Image with Python 3.10+, conda, pip, papermill, and MinIO client
+  image:
+    name: jupyter/scipy-notebook
+    tag: "python-3.10"
+  
+  # Storage configuration - 10GB PVC per user
+  storage:
+    type: dynamic
+    capacity: 10Gi
+    # Note: Storage class will be set via post-deployment patch if needed
+  
+  # Environment variables for MinIO access
+  extraEnv:
+    MINIO_ENDPOINT: "minio.ai.svc.cluster.local:9000"
+    MINIO_BUCKET: "notebook-artifacts"
+    MINIO_ACCESS_KEY: "minioadmin"
+    MINIO_SECRET_KEY: "minioadmin"
+    MINIO_REGION: "us-east-1"
+    MINIO_USE_SSL: "false"
+  
+  # Lifecycle hooks to install papermill and boto3 (MinIO S3 client)
+  lifecycleHooks:
+    postStart:
+      exec:
+        command:
+          - /bin/bash
+          - -c
+          - |
+            pip install --quiet --no-cache-dir papermill boto3 s3fs
+            echo "Papermill and MinIO client installed"
+  
+  # Network policy to allow access to MinIO and cluster services
+  networkPolicy:
+    enabled: true
+    egress:
+      - to:
+        - namespaceSelector:
+            matchLabels:
+              name: ai
+        ports:
+          - protocol: TCP
+            port: 9000
+      - to:
+        - namespaceSelector: {}
+        ports:
+          - protocol: TCP
+            port: 53
+          - protocol: UDP
+            port: 53
+
+# Proxy configuration
+proxy:
+  service:
+    type: ClusterIP
+  https:
+    enabled: false
+
+# Scheduling configuration
+scheduling:
+  userScheduler:
+    enabled: false
+  podPriority:
+    enabled: false
+
+# Pre-puller configuration (disable to avoid timeout issues)
+prePuller:
+  hook:
+    enabled: false
+  continuous:
+    enabled: false
+
+# RBAC configuration
+rbac:
+  create: true
+
+# Debug mode
+debug:
+  enabled: false
+

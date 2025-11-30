@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: minio-config
+  namespace: ai
+data:
+  MINIO_ENDPOINT: "minio.ai.svc.cluster.local:9000"
+  MINIO_BUCKET: "notebook-artifacts"
+  MINIO_REGION: "us-east-1"
+
+

@@ -398,6 +398,30 @@ main() {
         (start_port_forward "node-red" "iot" "node-red" 1880 1880 2>/dev/null) || true
     fi
     
+    # AI Workspace services (only if namespace exists and services are ready)
+    if kubectl get namespace ai &>/dev/null; then
+        print_status "Checking AI workspace services (optional - failures are normal if pods aren't ready)..."
+        
+        # JupyterHub - proxy-public service
+        if kubectl get svc -n ai proxy-public &>/dev/null; then
+            (start_port_forward "jupyterhub" "ai" "proxy-public" 8000 80 2>/dev/null) || true
+        fi
+        
+        # MinIO - console (port 9001) and API (port 9000)
+        if kubectl get svc -n ai minio &>/dev/null; then
+            (start_port_forward "minio-console" "ai" "minio" 9001 9001 2>/dev/null) || true
+            (start_port_forward "minio-api" "ai" "minio" 9000 9000 2>/dev/null) || true
+        fi
+    fi
+    
+    # Argo Workflows (in argo namespace)
+    if kubectl get namespace argo &>/dev/null; then
+        print_status "Checking Argo Workflows services (optional)..."
+        if kubectl get svc -n argo argo-workflows-server &>/dev/null; then
+            (start_port_forward "argo-workflows" "argo" "argo-workflows-server" 2746 2746 2>/dev/null) || true
+        fi
+    fi
+    
     echo ""
     print_status "All port-forwards started!"
     echo ""
@@ -412,6 +436,9 @@ main() {
     echo "  • Rancher:       https://rancher.tailc2013b.ts.net"
     echo "  • ThingsBoard:   http://thingsboard.tailc2013b.ts.net"
     echo "  • Node-RED:      http://nodered.tailc2013b.ts.net"
+    echo "  • JupyterHub:    http://jupyterhub.tailc2013b.ts.net"
+    echo "  • Argo Workflows: http://argo.tailc2013b.ts.net"
+    echo "  • MinIO Console:  http://minio.tailc2013b.ts.net"
     echo "  • See LAPTOP-SETUP.md for setup instructions"
     echo ""
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -447,6 +474,19 @@ main() {
     echo ""
     echo "     Node-RED (fallback):"
     echo "     http://localhost:1880"
+    echo ""
+    echo "  🤖 AI Workspace Services:"
+    echo "     JupyterHub (fallback - use Tailscale URL if available):"
+    echo "     http://localhost:8000"
+    echo "     Primary: http://jupyterhub.tailc2013b.ts.net"
+    echo ""
+    echo "     Argo Workflows (fallback - use Tailscale URL if available):"
+    echo "     http://localhost:2746"
+    echo "     Primary: http://argo.tailc2013b.ts.net"
+    echo ""
+    echo "     MinIO Console (fallback - use Tailscale URL if available):"
+    echo "     http://localhost:9001"
+    echo "     Primary: http://minio.tailc2013b.ts.net"
     echo ""
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo ""

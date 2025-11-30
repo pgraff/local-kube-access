@@ -5,9 +5,13 @@
 #
 # For complete setup instructions, see: LAPTOP-SETUP.md
 
+<<<<<<< HEAD
 # Primary control plane node IP (k8s-cp-01)
 # This should match the first control plane node in the cluster
 NODE_IP="100.68.247.112"
+=======
+NODE_IP="100.111.119.104"  # Storage node (has working ingress controller)
+>>>>>>> b6abd06 (Finished up the IoT stack)
 HOSTS_FILE="/etc/hosts"
 
 # Colors
@@ -61,9 +65,14 @@ $NODE_IP  hono.tailc2013b.ts.net
 $NODE_IP  thingsboard.tailc2013b.ts.net
 $NODE_IP  nodered.tailc2013b.ts.net
 $NODE_IP  jupyterhub.tailc2013b.ts.net
+<<<<<<< HEAD
 $NODE_IP  minio.tailc2013b.ts.net
 $NODE_IP  argo.tailc2013b.ts.net
 $NODE_IP  twin-service.tailc2013b.ts.net
+=======
+$NODE_IP  argo.tailc2013b.ts.net
+$NODE_IP  minio.tailc2013b.ts.net
+>>>>>>> b6abd06 (Finished up the IoT stack)
 EOHOSTS
 
 echo -e "${GREEN}✓ Entries added successfully!${NC}"
@@ -77,9 +86,14 @@ echo "  • Hono:          http://hono.tailc2013b.ts.net"
 echo "  • ThingsBoard:   http://thingsboard.tailc2013b.ts.net"
 echo "  • Node-RED:      http://nodered.tailc2013b.ts.net"
 echo "  • JupyterHub:    http://jupyterhub.tailc2013b.ts.net"
+<<<<<<< HEAD
 echo "  • MinIO:         http://minio.tailc2013b.ts.net"
 echo "  • Argo:          http://argo.tailc2013b.ts.net"
 echo "  • Twin Service:  http://twin-service.tailc2013b.ts.net"
+=======
+echo "  • Argo Workflows: http://argo.tailc2013b.ts.net"
+echo "  • MinIO Console:  http://minio.tailc2013b.ts.net"
+>>>>>>> b6abd06 (Finished up the IoT stack)
 echo ""
 echo "Test with: curl -I http://longhorn.tailc2013b.ts.net"
 

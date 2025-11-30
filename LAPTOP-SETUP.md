@@ -38,6 +38,9 @@ sudo bash -c 'cat >> /etc/hosts << EOHOSTS
 100.68.247.112  ditto.tailc2013b.ts.net
 100.68.247.112  thingsboard.tailc2013b.ts.net
 100.68.247.112  nodered.tailc2013b.ts.net
+100.68.247.112  jupyterhub.tailc2013b.ts.net
+100.68.247.112  argo.tailc2013b.ts.net
+100.68.247.112  minio.tailc2013b.ts.net
 EOHOSTS
 '
 ```
@@ -77,6 +80,9 @@ Open your browser and navigate to:
 - **Ditto:** http://ditto.tailc2013b.ts.net (if IoT stack deployed)
 - **ThingsBoard:** http://thingsboard.tailc2013b.ts.net (if IoT stack deployed)
 - **Node-RED:** http://nodered.tailc2013b.ts.net (if IoT stack deployed)
+- **JupyterHub:** http://jupyterhub.tailc2013b.ts.net (if AI workspace deployed)
+- **Argo Workflows:** http://argo.tailc2013b.ts.net (if AI workspace deployed)
+- **MinIO Console:** http://minio.tailc2013b.ts.net (if AI workspace deployed)
 
 ## Detailed Instructions
 

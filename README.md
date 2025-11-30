@@ -54,6 +54,7 @@ This repository contains documentation, scripts, and configuration files for man
 - **Cost Analysis**: Kubecost
 - **Message Broker**: Kafka 4.1.1 (KRaft mode, 3 controllers, 5 brokers)
 - **IoT Platform**: Complete stack with Mosquitto, Hono, ThingsBoard (digital twin functionality), and Node-RED
+- **AI Workspace**: JupyterHub, MinIO, Argo Workflows, and Papermill for notebook execution and orchestration
 
 ### Node Configuration
 - **Control Plane**: 3 nodes (k8s-cp-01, k8s-cp-02, k8s-cp-03)
@@ -89,6 +90,9 @@ See [LAPTOP-SETUP.md](LAPTOP-SETUP.md) for detailed Ubuntu/Tailscale setup instr
 - **Hono:** http://hono.tailc2013b.ts.net (if IoT stack deployed)
 - **ThingsBoard:** http://thingsboard.tailc2013b.ts.net (if IoT stack deployed) - includes digital twin functionality
 - **Node-RED:** http://nodered.tailc2013b.ts.net (if IoT stack deployed)
+- **JupyterHub:** http://jupyterhub.tailc2013b.ts.net (if AI workspace deployed)
+- **Argo Workflows:** http://argo.tailc2013b.ts.net (if AI workspace deployed)
+- **MinIO Console:** http://minio.tailc2013b.ts.net (if AI workspace deployed)
 
 **Note:** The `/etc/hosts` setup is a one-time configuration per machine. After that, URLs work immediately without any running processes. See [Ingress Setup Guide](cluster/docs/ingress-setup-guide.md) for details.
 
@@ -122,6 +126,9 @@ It can also be used as a fallback if Ingress is unavailable:
 - **Hono:** http://hono.tailc2013b.ts.net
 - **ThingsBoard:** http://thingsboard.tailc2013b.ts.net
 - **Node-RED:** http://nodered.tailc2013b.ts.net
+- **JupyterHub:** http://jupyterhub.tailc2013b.ts.net
+- **Argo Workflows:** http://argo.tailc2013b.ts.net
+- **MinIO Console:** http://minio.tailc2013b.ts.net
 
 See [LAPTOP-SETUP.md](LAPTOP-SETUP.md) for setup instructions.
 
@@ -158,6 +165,38 @@ See [LAPTOP-SETUP.md](LAPTOP-SETUP.md) for setup instructions.
 ```
 See [IoT Stack Setup Guide](iot/docs/iot-setup-guide.md) for complete documentation.
 
+### AI Workspace
+```bash
+# Deploy the complete AI workspace
+./ai/scripts/deploy-ai-stack.sh
+
+# Check status
+./ai/scripts/ai-status-check.sh
+
+# Execute a notebook
+./ai/scripts/run-notebook.sh \
+  /home/jovyan/work/input.ipynb \
+  /home/jovyan/work/output.ipynb \
+  '{"param1":"value1"}' \
+  claim-username \
+  false
+
+# Create scheduled notebook
+./ai/scripts/create-scheduled-notebook.sh \
+  daily-report \
+  "0 9 * * *" \
+  /home/jovyan/work/report.ipynb \
+  /home/jovyan/work/output.ipynb \
+  '{}' \
+  claim-username \
+  false
+
+# Uninstall AI workspace
+./ai/scripts/uninstall-ai-stack.sh
+```
+
+See [AI Workspace Setup Guide](ai/docs/ai-workspace-setup.md) for complete documentation.
+
 ### Lens (Kubernetes IDE)
 1. Import kubeconfig: `~/.kube/config-rke2-cluster.yaml`
 2. See [Lens Setup Guide](cluster/docs/setup-lens.md) for details
@@ -183,6 +222,7 @@ See [IoT Stack Setup Guide](iot/docs/iot-setup-guide.md) for complete documentat
 - **[Kafka Setup Guide](kafka/docs/kafka-setup-guide.md)** - Kafka cluster with 3 controllers and 5 brokers
 - **[Kafka UI Setup Guide](kafka/docs/kafka-ui-setup-guide.md)** - Kafka UI dashboard for monitoring and management
 - **[IoT Stack Setup Guide](iot/docs/iot-setup-guide.md)** - Complete IoT platform with Mosquitto, Hono, ThingsBoard (digital twin), and Node-RED
+- **[AI Workspace Setup Guide](ai/docs/ai-workspace-setup.md)** - JupyterHub, MinIO, Argo Workflows, and Papermill for notebook execution
 - **[Strimzi Local-Path Workaround](kafka/docs/strimzi-local-path-workaround.md)** - Fix for Strimzi with local-path storage
 - **[Add Node Guide](cluster/docs/add-node-guide.md)** - How to add new nodes to the RKE2 cluster
 
@@ -208,12 +248,20 @@ All scripts use your local kubeconfig and work from anywhere (Mac, Linux, etc.):
 **IoT Stack Management:**
 - **`iot/scripts/deploy-iot-stack.sh`** - Deploy complete IoT stack (Mosquitto, Hono, ThingsBoard, Node-RED)
 - **`iot/scripts/uninstall-iot-stack.sh`** - Uninstall complete IoT stack
+
+**AI Workspace Management:**
+- **`ai/scripts/deploy-ai-stack.sh`** - Deploy complete AI workspace (JupyterHub, MinIO, Argo Workflows)
+- **`ai/scripts/uninstall-ai-stack.sh`** - Uninstall complete AI workspace
+- **`ai/scripts/run-notebook.sh`** - Execute notebook via Papermill (Kubernetes Job)
+- **`ai/scripts/create-scheduled-notebook.sh`** - Create CronJob for scheduled notebook execution
+- **`ai/scripts/ai-status-check.sh`** - Check AI workspace status
+
 **Digital Twin Functionality:**
 - **ThingsBoard** provides digital twin capabilities via device attributes
 - **`iot/docs/thingsboard-as-digital-twin.md`** - Guide for using ThingsBoard as digital twin
 - **`iot/docs/STACK-SIMPLIFICATION-SUMMARY.md`** - Summary of architecture changes
 
-**Note:** HTTP services (Rancher, Longhorn, Kubecost, Kafka UI, Hono, ThingsBoard, Node-RED) are now accessible via Ingress URLs. Individual port-forward scripts for these services have been removed. See [LAPTOP-SETUP.md](LAPTOP-SETUP.md) for URL-based access setup.
+**Note:** HTTP services (Rancher, Longhorn, Kubecost, Kafka UI, Hono, ThingsBoard, Node-RED, JupyterHub, Argo Workflows, MinIO) are now accessible via Ingress URLs. Individual port-forward scripts for these services have been removed. See [LAPTOP-SETUP.md](LAPTOP-SETUP.md) for URL-based access setup.
 
 **Stack Simplified:** The IoT stack has been simplified by removing TimescaleDB and Twin Service. ThingsBoard now handles digital twin functionality via device attributes. See [iot/docs/STACK-SIMPLIFICATION-SUMMARY.md](iot/docs/STACK-SIMPLIFICATION-SUMMARY.md) for details.
 

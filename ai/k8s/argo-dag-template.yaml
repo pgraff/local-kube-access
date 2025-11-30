@@ -1,0 +1,161 @@
+# Argo Workflow DAG Example
+# This demonstrates a multi-step pipeline using the Papermill template
+#
+# Usage:
+#   kubectl apply -f argo-dag-template.yaml -n ai
+#   kubectl create workflow --from=workflowtemplate/notebook-dag-pipeline -n ai
+
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: notebook-dag-pipeline
+  namespace: ai
+spec:
+  entrypoint: notebook-pipeline
+  templates:
+  - name: notebook-pipeline
+    dag:
+      tasks:
+      # Step 1: Data extraction notebook
+      - name: extract-data
+        templateRef:
+          name: papermill-template
+          template: papermill-execution
+        arguments:
+          parameters:
+          - name: notebook-path
+            value: "/home/jovyan/work/01-extract-data.ipynb"
+          - name: output-path
+            value: "/home/jovyan/work/outputs/01-extract-data-output.ipynb"
+          - name: parameters
+            value: '{"date":"2024-01-01","source":"production"}'
+          - name: pvc-name
+            value: "claim-username"  # Update with actual PVC name
+          - name: output-to-minio
+            value: "false"
+      
+      # Step 2: Data transformation notebook (depends on extract-data)
+      - name: transform-data
+        dependencies: [extract-data]
+        templateRef:
+          name: papermill-template
+          template: papermill-execution
+        arguments:
+          parameters:
+          - name: notebook-path
+            value: "/home/jovyan/work/02-transform-data.ipynb"
+          - name: output-path
+            value: "/home/jovyan/work/outputs/02-transform-data-output.ipynb"
+          - name: parameters
+            value: '{"input_file":"outputs/01-extract-data-output.ipynb"}'
+          - name: pvc-name
+            value: "claim-username"  # Update with actual PVC name
+          - name: output-to-minio
+            value: "false"
+      
+      # Step 3: Model training notebook (depends on transform-data)
+      - name: train-model
+        dependencies: [transform-data]
+        templateRef:
+          name: papermill-template
+          template: papermill-execution
+        arguments:
+          parameters:
+          - name: notebook-path
+            value: "/home/jovyan/work/03-train-model.ipynb"
+          - name: output-path
+            value: "/home/jovyan/work/outputs/03-train-model-output.ipynb"
+          - name: parameters
+            value: '{"epochs":10,"learning_rate":0.001}'
+          - name: pvc-name
+            value: "claim-username"  # Update with actual PVC name
+          - name: output-to-minio
+            value: "false"
+      
+      # Step 4: Generate report (depends on train-model, saves to MinIO)
+      - name: generate-report
+        dependencies: [train-model]
+        templateRef:
+          name: papermill-template
+          template: papermill-execution
+        arguments:
+          parameters:
+          - name: notebook-path
+            value: "/home/jovyan/work/04-generate-report.ipynb"
+          - name: output-path
+            value: "reports/final-report.ipynb"
+          - name: parameters
+            value: '{"model_version":"v1.0"}'
+          - name: pvc-name
+            value: "claim-username"  # Update with actual PVC name
+          - name: output-to-minio
+            value: "true"  # Save final report to MinIO
+
+---
+# Alternative: Simple DAG example with parallel execution
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: notebook-parallel-pipeline
+  namespace: ai
+spec:
+  entrypoint: parallel-notebooks
+  templates:
+  - name: parallel-notebooks
+    dag:
+      tasks:
+      # Run multiple notebooks in parallel
+      - name: notebook-1
+        templateRef:
+          name: papermill-template
+          template: papermill-execution
+        arguments:
+          parameters:
+          - name: notebook-path
+            value: "/home/jovyan/work/notebook1.ipynb"
+          - name: output-path
+            value: "/home/jovyan/work/outputs/notebook1-output.ipynb"
+          - name: pvc-name
+            value: "claim-username"
+      
+      - name: notebook-2
+        templateRef:
+          name: papermill-template
+          template: papermill-execution
+        arguments:
+          parameters:
+          - name: notebook-path
+            value: "/home/jovyan/work/notebook2.ipynb"
+          - name: output-path
+            value: "/home/jovyan/work/outputs/notebook2-output.ipynb"
+          - name: pvc-name
+            value: "claim-username"
+      
+      - name: notebook-3
+        templateRef:
+          name: papermill-template
+          template: papermill-execution
+        arguments:
+          parameters:
+          - name: notebook-path
+            value: "/home/jovyan/work/notebook3.ipynb"
+          - name: output-path
+            value: "/home/jovyan/work/outputs/notebook3-output.ipynb"
+          - name: pvc-name
+            value: "claim-username"
+      
+      # Aggregate results after all notebooks complete
+      - name: aggregate-results
+        dependencies: [notebook-1, notebook-2, notebook-3]
+        templateRef:
+          name: papermill-template
+          template: papermill-execution
+        arguments:
+          parameters:
+          - name: notebook-path
+            value: "/home/jovyan/work/aggregate.ipynb"
+          - name: output-path
+            value: "/home/jovyan/work/outputs/aggregate-output.ipynb"
+          - name: pvc-name
+            value: "claim-username"
+
