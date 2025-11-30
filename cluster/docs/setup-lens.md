@@ -73,10 +73,77 @@ Then Lens should automatically detect it.
 - **Context**: default
 - **User**: default
 
+## Metrics Configuration
+
+If Lens shows "Metrics are not available due to missing or invalid configuration":
+
+**Important**: Lens requires its own Prometheus-based metrics stack, separate from the Kubernetes metrics-server. The metrics-server (used by `kubectl top`) is different from what Lens needs.
+
+### Enable Lens Metrics (Required)
+
+Lens needs to install Prometheus, Kube State Metrics, and Node Exporter:
+
+1. **Open Lens** and select your cluster
+2. **Right-click on the cluster icon** (top-left corner) → Choose **"Settings"**
+3. **Navigate to "Lens Metrics"** section
+4. **Toggle ON**:
+   - Prometheus
+   - Kube State Metrics  
+   - Node Exporter
+5. **Click "Apply"** to deploy the components
+6. **Wait 2-5 minutes** for Prometheus to start collecting data
+
+### What Gets Installed
+
+Lens will create:
+- **Prometheus** - Metrics collection and storage
+- **Kube State Metrics** - Kubernetes object metrics
+- **Node Exporter** - Node-level system metrics
+- Namespace: `lens-metrics` (or similar)
+
+### Resource Requirements
+
+Lens Metrics requires:
+- **CPU**: ~1-2 cores
+- **Memory**: ~2-4 GB
+- **Storage**: ~20-50 GB for metrics retention
+
+### Verification
+
+After installation, check:
+
+```bash
+# Check if Lens metrics components are running
+kubectl get pods -A | grep -E "prometheus|kube-state-metrics|node-exporter"
+
+# Check Lens metrics namespace
+kubectl get namespace | grep lens
+```
+
+### Troubleshooting
+
+**If metrics still don't show:**
+
+1. **Wait longer** - Prometheus needs time to collect initial data (5-10 minutes)
+2. **Check pod status**:
+   ```bash
+   kubectl get pods -A | grep -E "prometheus|kube-state-metrics"
+   ```
+3. **Check resource availability**:
+   ```bash
+   kubectl top nodes
+   kubectl top pods -A
+   ```
+4. **Restart Lens** after installation completes
+5. **Check Lens logs** (if available in Lens settings)
+
+**Note**: The Kubernetes metrics-server (`kubectl top`) is separate and works independently. Lens Metrics is specifically for Lens dashboards and visualizations.
+
 ## Next Steps
 
 1. Open Lens
 2. Import the kubeconfig file
 3. Lens should connect and show your cluster
 4. You'll be able to browse pods, services, deployments, etc.
+5. If metrics don't show, wait 2-3 minutes or restart metrics-server
 

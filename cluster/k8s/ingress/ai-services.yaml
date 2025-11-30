@@ -4,7 +4,8 @@ metadata:
   name: jupyterhub-ingress
   namespace: ai
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    # WebSocket support for JupyterHub - no rewrite-target needed
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
     nginx.ingress.kubernetes.io/proxy-body-size: "0"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
