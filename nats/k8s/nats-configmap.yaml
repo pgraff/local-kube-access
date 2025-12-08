@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nats-config
+  namespace: nats
+data:
+  nats.conf: |
+    # NATS Server Configuration with JetStream
+    port: 4222
+    http_port: 8222
+    
+    # Cluster Configuration
+    cluster {
+      port: 6222
+      name: nats-cluster
+      routes = [
+        nats://nats-0.nats-headless.nats.svc.cluster.local:6222
+        nats://nats-1.nats-headless.nats.svc.cluster.local:6222
+        nats://nats-2.nats-headless.nats.svc.cluster.local:6222
+      ]
+    }
+    
+    # JetStream Configuration
+    jetstream {
+      store_dir: /data/jetstream
+      max_mem_store: 2GB
+      max_file_store: 50GB
+    }
+    
+    # Logging - use stdout instead of file for better K8s integration
+    logtime: true
+    
+    # Security (adjust as needed)
+    # authorization {
+    #   users = [
+    #     { user: "admin", password: "changeme" }
+    #   ]
+    # }

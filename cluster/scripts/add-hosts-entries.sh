@@ -56,6 +56,7 @@ cat >> "$HOSTS_FILE" << EOHOSTS
 $NODE_IP  longhorn.tailc2013b.ts.net
 $NODE_IP  kubecost.tailc2013b.ts.net
 $NODE_IP  kafka-ui.tailc2013b.ts.net
+$NODE_IP  nats-ui.tailc2013b.ts.net
 $NODE_IP  rancher.tailc2013b.ts.net
 $NODE_IP  hono.tailc2013b.ts.net
 $NODE_IP  thingsboard.tailc2013b.ts.net

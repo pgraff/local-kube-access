@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nats-ui
+  namespace: nats
+  labels:
+    app: nats-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nats-ui
+  template:
+    metadata:
+      labels:
+        app: nats-ui
+    spec:
+      containers:
+      - name: nats-ui
+        image: ghcr.io/nats-nui/nui:latest
+        ports:
+        - containerPort: 31311
+          name: http
+        env:
+        - name: NATS_URL
+          value: "nats://nats.nats.svc.cluster.local:4222"
+        - name: NATS_WS_URL
+          value: "ws://nats.nats.svc.cluster.local:4222"
+        volumeMounts:
+        - name: nui-db
+          mountPath: /db
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      volumes:
+      - name: nui-db
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nats-ui
+  namespace: nats
+  labels:
+    app: nats-ui
+spec:
+  type: ClusterIP
+  ports:
+  - port: 31311
+    targetPort: 31311
+    protocol: TCP
+    name: http
+  selector:
+    app: nats-ui

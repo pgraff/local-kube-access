@@ -38,6 +38,7 @@ declare -A SERVICES=(
     ["longhorn.tailc2013b.ts.net"]="Longhorn"
     ["kubecost.tailc2013b.ts.net"]="Kubecost"
     ["kafka-ui.tailc2013b.ts.net"]="Kafka UI"
+    ["nats-ui.tailc2013b.ts.net"]="NATS UI"
     ["rancher.tailc2013b.ts.net"]="Rancher"
     ["hono.tailc2013b.ts.net"]="Hono"
     ["thingsboard.tailc2013b.ts.net"]="ThingsBoard"
